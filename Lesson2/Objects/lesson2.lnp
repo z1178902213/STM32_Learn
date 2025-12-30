@@ -1,0 +1,8 @@
+--cpu=Cortex-M4.fp.sp
+".\objects\main.o"
+".\objects\startup_stm32f40xx.o"
+".\objects\stm32f4xx_gpio.o"
+--library_type=microlib --strict --scatter ".\Objects\lesson2.sct"
+--summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
+--info sizes --info totals --info unused --info veneers
+--list ".\Listings\lesson2.map" -o .\Objects\lesson2.axf

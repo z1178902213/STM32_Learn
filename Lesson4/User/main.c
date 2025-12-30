@@ -28,6 +28,9 @@ int main(void){
 	uint8_t led_red_status = 0;
 	uint8_t led_green_status = 0;
 	init_led();
+	turn_off_red();
+	turn_off_green();
+	turn_off_blue();
 	init_key();
 	while(1){
 		if(scan_key1()){
@@ -41,7 +44,7 @@ int main(void){
 		}
 		if(scan_key2()){
 			if(led_green_status == 0){
-				turn_off_green();
+				turn_on_green();
 				led_green_status = 1;
 			}else{
 				turn_off_green();

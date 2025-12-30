@@ -5,7 +5,7 @@ void init_led(void){
 	
 	GPIO_InitTypeDef GPIOF_CONFIG;
 	
-	GPIOF_CONFIG.GPIO_Pin = GPIO_Pin_6;
+	GPIOF_CONFIG.GPIO_Pin = GPIO_Pin_6|GPIO_Pin_7|GPIO_Pin_8;
 	GPIOF_CONFIG.GPIO_Mode = GPIO_Mode_OUT;
 	GPIOF_CONFIG.GPIO_OType = GPIO_OType_PP;
 	GPIOF_CONFIG.GPIO_Speed = GPIO_Low_Speed;

@@ -11,7 +11,7 @@ void init_key(void){
 	GPIO_Init(GPIOA, &GPIO_CONFIG);
 	GPIO_CONFIG.GPIO_Pin = GPIO_Pin_13;
 	GPIO_CONFIG.GPIO_Mode = GPIO_Mode_IN;
-	GPIO_Init(GPIOA, &GPIO_CONFIG);
+	GPIO_Init(GPIOC, &GPIO_CONFIG);
 }
 
 uint8_t read_key1(void){
