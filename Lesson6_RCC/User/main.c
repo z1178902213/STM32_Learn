@@ -3,8 +3,9 @@
 #include "bsp_key.h"
 #include "bsp_clkconfig.h"
 
-void delay(uint32_t count){
-	for(;count >0; count --);
+void delay500ms(){
+	uint32_t i = 21454112;
+	for(;i >0; i --);
 }
 
 uint8_t scan_key1(){
@@ -34,9 +35,9 @@ int main(void){
 	init_key();
 	while(1){
 		turn_on_red();
-		delay(16800000);
+		delay500ms();
 		turn_off_red();
-		delay(16800000);
+		delay500ms();
 	}
 }
 

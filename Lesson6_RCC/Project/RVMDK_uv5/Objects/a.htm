@@ -3,7 +3,7 @@
 <title>Static Call Graph - [.\Objects\a.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image .\Objects\a.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060960: Last Updated: Wed Jan 07 17:17:00 2026
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060960: Last Updated: Wed Jan 14 22:53:12 2026
 <BR><P>
 <H3>Maximum Stack Usage =         36 bytes + Unknown(Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -466,7 +466,7 @@ Global Symbols
 
 <P><STRONG><a name="[79]"></a>__scatterload_zeroinit</STRONG> (Thumb, 14 bytes, Stack size unknown bytes, handlers.o(i.__scatterload_zeroinit), UNUSED)
 
-<P><STRONG><a name="[6c]"></a>delay</STRONG> (Thumb, 10 bytes, Stack size 0 bytes, main.o(i.delay))
+<P><STRONG><a name="[6c]"></a>delay500ms</STRONG> (Thumb, 12 bytes, Stack size 0 bytes, main.o(i.delay500ms))
 <BR><BR>[Called By]<UL><LI><a href="#[5c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
@@ -488,7 +488,7 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[5c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[5c]"></a>main</STRONG> (Thumb, 48 bytes, Stack size 0 bytes, main.o(i.main))
+<P><STRONG><a name="[5c]"></a>main</STRONG> (Thumb, 44 bytes, Stack size 0 bytes, main.o(i.main))
 <BR><BR>[Stack]<UL><LI>Max Depth = 36<LI>Call Chain = main &rArr; init_led &rArr; GPIO_Init
 </UL>
 <BR>[Calls]<UL><LI><a href="#[6b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;turn_on_red
@@ -498,7 +498,7 @@ Global Symbols
 <LI><a href="#[66]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;init_led
 <LI><a href="#[63]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;init_key
 <LI><a href="#[67]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;User_SetSysClock
-<LI><a href="#[6c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay
+<LI><a href="#[6c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay500ms
 </UL>
 <BR>[Address Reference Count : 1]<UL><LI> entry9a.o(.ARM.Collect$$$$0000000B)
 </UL>
