@@ -1,6 +1,7 @@
 #include "stm32f4xx.h"
 #include "bsp_led.h"
 #include "bsp_key.h"
+#include "bsp_myclkconfig.h"
 #include "bsp_clkconfig.h"
 
 void delay500ms(){
@@ -27,7 +28,8 @@ uint8_t scan_key2(){
 }
 
 int main(void){
-	User_SetSysClock();
+	MyClkconfig();
+	// User_SetSysClock();
 	init_led();
 	turn_off_red();
 	turn_off_green();

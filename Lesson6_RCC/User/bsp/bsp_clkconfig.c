@@ -7,15 +7,10 @@
 
 void User_SetSysClock(void)
 {
-    /******************************************************************************/
-    /*            PLL (clocked by HSE) used as System clock source                */
-    /******************************************************************************/
     __IO uint32_t StartUpCounter = 0, HSEStatus = 0;
 
-    /* Enable HSE */
     RCC->CR |= ((uint32_t)RCC_CR_HSEON);
 
-    /* Wait till HSE is ready and if Time out is reached exit */
     do
     {
         HSEStatus = RCC->CR & RCC_CR_HSERDY;

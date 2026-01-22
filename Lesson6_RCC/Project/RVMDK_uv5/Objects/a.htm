@@ -3,7 +3,7 @@
 <title>Static Call Graph - [.\Objects\a.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image .\Objects\a.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060960: Last Updated: Wed Jan 14 22:53:12 2026
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060960: Last Updated: Thu Jan 22 22:50:46 2026
 <BR><P>
 <H3>Maximum Stack Usage =         36 bytes + Unknown(Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -431,6 +431,12 @@ Global Symbols
 <P><STRONG><a name="[3]"></a>MemManage_Handler</STRONG> (Thumb, 4 bytes, Stack size 0 bytes, stm32f4xx_it.o(i.MemManage_Handler))
 <BR>[Address Reference Count : 1]<UL><LI> startup_stm32f40xx.o(RESET)
 </UL>
+<P><STRONG><a name="[67]"></a>MyClkconfig</STRONG> (Thumb, 196 bytes, Stack size 8 bytes, bsp_myclkconfig.o(i.MyClkconfig))
+<BR><BR>[Stack]<UL><LI>Max Depth = 8<LI>Call Chain = MyClkconfig
+</UL>
+<BR>[Called By]<UL><LI><a href="#[5c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
+</UL>
+
 <P><STRONG><a name="[1]"></a>NMI_Handler</STRONG> (Thumb, 2 bytes, Stack size 0 bytes, stm32f4xx_it.o(i.NMI_Handler))
 <BR>[Address Reference Count : 1]<UL><LI> startup_stm32f40xx.o(RESET)
 </UL>
@@ -454,12 +460,6 @@ Global Symbols
 <P><STRONG><a name="[5]"></a>UsageFault_Handler</STRONG> (Thumb, 4 bytes, Stack size 0 bytes, stm32f4xx_it.o(i.UsageFault_Handler))
 <BR>[Address Reference Count : 1]<UL><LI> startup_stm32f40xx.o(RESET)
 </UL>
-<P><STRONG><a name="[67]"></a>User_SetSysClock</STRONG> (Thumb, 220 bytes, Stack size 12 bytes, bsp_clkconfig.o(i.User_SetSysClock))
-<BR><BR>[Stack]<UL><LI>Max Depth = 12<LI>Call Chain = User_SetSysClock
-</UL>
-<BR>[Called By]<UL><LI><a href="#[5c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
-</UL>
-
 <P><STRONG><a name="[77]"></a>__scatterload_copy</STRONG> (Thumb, 14 bytes, Stack size unknown bytes, handlers.o(i.__scatterload_copy), UNUSED)
 
 <P><STRONG><a name="[78]"></a>__scatterload_null</STRONG> (Thumb, 2 bytes, Stack size unknown bytes, handlers.o(i.__scatterload_null), UNUSED)
@@ -497,7 +497,7 @@ Global Symbols
 <LI><a href="#[6a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;turn_off_blue
 <LI><a href="#[66]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;init_led
 <LI><a href="#[63]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;init_key
-<LI><a href="#[67]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;User_SetSysClock
+<LI><a href="#[67]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MyClkconfig
 <LI><a href="#[6c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay500ms
 </UL>
 <BR>[Address Reference Count : 1]<UL><LI> entry9a.o(.ARM.Collect$$$$0000000B)
