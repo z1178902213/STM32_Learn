@@ -30,6 +30,8 @@ uint8_t scan_key2(){
 int main(void){
 	MyClkconfig();
 	// User_SetSysClock();
+	init_MCO1();
+	init_MCO2();
 	init_led();
 	turn_off_red();
 	turn_off_green();

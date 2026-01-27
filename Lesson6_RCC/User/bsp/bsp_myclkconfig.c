@@ -37,7 +37,33 @@ void MyClkconfig(){
 			;
 	{
 	}
+}
+
+void init_MCO1(){
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
 	
+	GPIO_InitTypeDef GPIOA_CONFIG;
+	GPIOA_CONFIG.GPIO_Pin = GPIO_Pin_8;
+	GPIOA_CONFIG.GPIO_Mode = GPIO_Mode_AF;
+	GPIOA_CONFIG.GPIO_OType = GPIO_OType_PP;
+	GPIOA_CONFIG.GPIO_Speed = GPIO_Low_Speed;
 	
+	GPIO_Init(GPIOA, &GPIOA_CONFIG);
+	
+	RCC_MCO1Config(RCC_MCO1Source_PLLCLK, RCC_MCO1Div_2);
+}
+
+void init_MCO2(){
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
+	
+	GPIO_InitTypeDef GPIOC_CONFIG;
+	GPIOC_CONFIG.GPIO_Pin = GPIO_Pin_9;
+	GPIOC_CONFIG.GPIO_Mode = GPIO_Mode_AF;
+	GPIOC_CONFIG.GPIO_OType = GPIO_OType_PP;
+	GPIOC_CONFIG.GPIO_Speed = GPIO_Low_Speed;
+	
+	GPIO_Init(GPIOC, &GPIOC_CONFIG);
+	
+	RCC_MCO2Config(RCC_MCO2Source_PLLCLK, RCC_MCO2Div_2);
 }
 

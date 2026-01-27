@@ -4,6 +4,8 @@
 #include "stm32f4xx.h"
 
 void MyClkconfig(void);
+void init_MCO1(void);
+void init_MCO2(void);
 
 #endif
 
