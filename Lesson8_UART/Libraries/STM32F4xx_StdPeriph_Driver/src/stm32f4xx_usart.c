@@ -66,7 +66,7 @@
     enable the oversampling by 8 mode using the function USART_OverSampling8Cmd().
     This function should be called after enabling the USART clock (RCC_APBxPeriphClockCmd())
     and before calling the function USART_Init().
-            
+
     @endverbatim        
   ******************************************************************************
   * @attention
