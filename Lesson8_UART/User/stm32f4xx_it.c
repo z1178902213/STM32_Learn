@@ -30,6 +30,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_it.h"
 #include "bsp_led.h"
+#include "bsp_usart.h"
 
 /** @addtogroup Template_Project
   * @{
@@ -159,20 +160,22 @@ void SysTick_Handler(void)
 /*void PPP_IRQHandler(void)
 {
 }*/
-
-void EXTI0_IRQHandler(){
-	if(EXTI_GetFlagStatus(EXTI_Line0) != RESET){
-		toggle_red();
-		EXTI_ClearITPendingBit(EXTI_Line0);
+void USART1_IRQHandler(void)
+{
+	if(USART_GetFlagStatus(USART1, USART_FLAG_RXNE) == SET)
+	{
+		if(usart1_receive_c() == 'r'){
+			toggle_red();
+		}else if(usart1_receive_c() == 'g'){
+			toggle_green();
+		}else if(usart1_receive_c() == 'b'){
+			toggle_blue();
+		}
+		usart1_send_s("OK\n");
 	}
 }
 
-void EXTI15_10_IRQHandler(){
-	if(EXTI_GetFlagStatus(EXTI_Line13) != RESET){
-		toggle_green();
-		EXTI_ClearITPendingBit(EXTI_Line13);
-	}
-}
+
 /**
   * @}
   */ 
