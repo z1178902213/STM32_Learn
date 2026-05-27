@@ -31,7 +31,7 @@ void init_usart1(void){
 
 	// 6、配置USART在发送完数据和接收到数据以后产生中断
 //	USART_ITConfig(USART1, USART_FLAG_TC, ENABLE);
-	USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);
+	// USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);
 	
 	USART_Cmd(USART1, ENABLE);
 }
@@ -53,4 +53,25 @@ void usart1_send_s(char *s){
 uint16_t usart1_receive_c(void){
 	uint16_t c = USART_ReceiveData(USART1);
 	return c;
+}
+
+///重定向c库函数printf到串口，重定向后可使用printf函数
+int fputc(int ch, FILE *f)
+{
+		/* 发送一个字节数据到串口 */
+		USART_SendData(USART1, (uint8_t) ch);
+		
+		/* 等待发送完毕 */
+		while (USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET);		
+	
+		return (ch);
+}
+
+///重定向c库函数scanf到串口，重写向后可使用scanf、getchar等函数
+int fgetc(FILE *f)
+{
+		/* 等待串口输入数据 */
+		while (USART_GetFlagStatus(USART1, USART_FLAG_RXNE) == RESET);
+
+		return (int)USART_ReceiveData(USART1);
 }

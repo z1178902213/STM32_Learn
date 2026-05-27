@@ -31,6 +31,7 @@
 #include "stm32f4xx_it.h"
 #include "bsp_led.h"
 #include "bsp_usart.h"
+#include "bsp_wwdg.h"
 
 /** @addtogroup Template_Project
   * @{
@@ -175,6 +176,61 @@ void USART1_IRQHandler(void)
 	}
 }
 
+void TIM6_DAC_IRQHandler(void){
+	if(TIM_GetFlagStatus(TIM6, TIM_IT_Update) != RESET){
+		toggle_green();
+		TIM_ClearITPendingBit(TIM6, TIM_IT_Update);
+	}
+}
+
+extern CanRxMsg can2_rx;
+
+void CAN2_RX0_IRQHandler(void){
+	uint8_t i = 0;
+	if(CAN_GetFlagStatus(CAN2, CAN_FLAG_FMP0) == SET){
+		CAN_Receive(CAN2, CAN_FIFO0, &can2_rx);
+		printf("--> 接收到StdId：0X%X\n", can2_rx.StdId);
+		printf("--> 接收到IDE：%d\n", can2_rx.IDE);
+		printf("--> 接收到RTR：%d\n", can2_rx.RTR);
+		printf("--> 接收到DLC：%d\n", can2_rx.DLC);
+		printf("--> 接收到Data：");
+		for(i = 0; i< can2_rx.DLC; i++){
+			printf("%d ", can2_rx.Data[i]);
+		}
+		printf("\n--> 测试完成\n");
+	}
+}
+
+void WWDG_IRQHandler(void){
+	wwdg_reload(127);
+	WWDG_ClearFlag();
+	printf("\n--> 触发亡语.\n");
+	turn_on_red();
+}
+
+
+__IO uint32_t IC1Value;
+__IO uint32_t IC2Value;
+__IO double DutyCycle;
+__IO double Frequency;
+void TIM8_CC_IRQHandler(){
+	TIM_ClearITPendingBit(TIM8, TIM_IT_CC1);
+	
+	IC1Value = TIM_GetCapture1(TIM8);
+	IC2Value = TIM_GetCapture2(TIM8);		// TIM_ICInitStruct中配置了捕获下降沿，也就是通道2的情况。
+	
+  printf("IC1Value = %d  IC2Value = %d ",IC1Value,IC2Value);
+	if (IC1Value != 0) {
+		/* 占空比计算 */
+		DutyCycle = (float)((IC2Value+1) * 100) / (IC1Value+1);
+		/* 频率计算 */
+		Frequency = 168000000/(1680)/(float)(IC1Value+1);
+		printf("--> 占空比：%0.2f%%频率：%0.2fHz\n", DutyCycle, Frequency);
+	} else {
+		DutyCycle = 0;
+		Frequency = 0;
+	}
+}
 
 /**
   * @}

@@ -22,3 +22,12 @@ void init_key(){
 	GPIO_Init(GPIOC, &GPIOC_Structure);
 }
 
+FlagStatus get_key_status(){
+	if(GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_0) == (uint8_t)KEY_ON){
+		while(GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_0) == (uint8_t)KEY_ON);
+		return SET;
+	}else{
+		return RESET;
+	}
+}
+

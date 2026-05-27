@@ -187,6 +187,7 @@
             <RvdsVP>2</RvdsVP>
             <RvdsMve>0</RvdsMve>
             <RvdsCdeCp>0</RvdsCdeCp>
+            <nBranchProt>0</nBranchProt>
             <hadIRAM2>1</hadIRAM2>
             <hadIROM2>0</hadIROM2>
             <StupSel>8</StupSel>
@@ -340,7 +341,7 @@
               <MiscControls></MiscControls>
               <Define>USE_STDPERIPH_DRIVER,STM32F40_41xxx,</Define>
               <Undefine></Undefine>
-              <IncludePath>..\..\User;..\..\Libraries\CMSIS\Include;..\..\Libraries\CMSIS\Device\ST\STM32F4xx\Include;..\..\Libraries\STM32F4xx_StdPeriph_Driver\inc;..\..\User\bsp\include</IncludePath>
+              <IncludePath>..\..\User;..\..\Libraries\CMSIS\Include;..\..\Libraries\CMSIS\Device\ST\STM32F4xx\Include;..\..\Libraries\STM32F4xx_StdPeriph_Driver\inc;..\..\User\bsp\include;..\..\User\fatfs\R0_16\include;..\..\User\test</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -812,10 +813,120 @@
               <FileType>1</FileType>
               <FilePath>..\..\User\bsp\bsp_dma.c</FilePath>
             </File>
+            <File>
+              <FileName>bsp_iic.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\bsp\bsp_iic.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_spi.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\bsp\bsp_spi.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_adc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\bsp\bsp_adc.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_tim.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\bsp\bsp_tim.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_fsmc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\bsp\bsp_fsmc.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_can.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\bsp\bsp_can.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_iwdg.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\bsp\bsp_iwdg.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_wwdg.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\bsp_wwdg.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_tpad.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\bsp\bsp_tpad.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
           <GroupName>DOC</GroupName>
+        </Group>
+        <Group>
+          <GroupName>FatFs</GroupName>
+          <Files>
+            <File>
+              <FileName>diskio.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\fatfs\R0_16\diskio.c</FilePath>
+            </File>
+            <File>
+              <FileName>ff.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\fatfs\R0_16\ff.c</FilePath>
+            </File>
+            <File>
+              <FileName>ffsystem.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\fatfs\R0_16\ffsystem.c</FilePath>
+            </File>
+            <File>
+              <FileName>ffunicode.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\fatfs\R0_16\ffunicode.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Test</GroupName>
+          <Files>
+            <File>
+              <FileName>test_fatfs.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\test\test_fatfs.c</FilePath>
+            </File>
+            <File>
+              <FileName>test_adc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\test\test_adc.c</FilePath>
+            </File>
+            <File>
+              <FileName>test_tim.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\test\test_tim.c</FilePath>
+            </File>
+            <File>
+              <FileName>test_sram.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\test\test_sram.c</FilePath>
+            </File>
+            <File>
+              <FileName>test_can.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\test\test_can.c</FilePath>
+            </File>
+            <File>
+              <FileName>test_iwdg.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\test_iwdg.c</FilePath>
+            </File>
+            <File>
+              <FileName>test_wwdg.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\test_wwdg.c</FilePath>
+            </File>
+          </Files>
         </Group>
       </Groups>
     </Target>
