@@ -1,10 +1,8 @@
 #include "bsp_tim.h"
 #include "bsp_usart.h"
-
-
+#include "common.h"
 
 void init_tim6(){
-
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);
 	NVIC_InitTypeDef NVIC_TIM6_InitStruct;
 	NVIC_TIM6_InitStruct.NVIC_IRQChannel = TIM6_DAC_IRQn;
@@ -16,9 +14,9 @@ void init_tim6(){
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM6, ENABLE);
 
 	TIM_TimeBaseInitTypeDef TIM_TimeBaseInitStruct;
-	TIM_TimeBaseInitStruct.TIM_Prescaler = 84-1;		// 定时器配置成1MHz，也就是1ms 定时器计数一次
+	TIM_TimeBaseInitStruct.TIM_Prescaler = 840-1;		// 定时器配置成100KHz，也就是10us 定时器计数一次
 	TIM_TimeBaseInitStruct.TIM_CounterMode = TIM_CounterMode_Up;
-	TIM_TimeBaseInitStruct.TIM_Period = 10 - 1;		// 定时器计数到10的时候发生上溢的事件，产生定时器中断，此时过了10ms。
+	TIM_TimeBaseInitStruct.TIM_Period = 1000 - 1;		// 定时器计数到1000的时候发生上溢的事件，产生定时器中断，此时过了10ms
 	TIM_TimeBaseInit(TIM6, &TIM_TimeBaseInitStruct);
 	
 	TIM_ClearFlag(TIM6, TIM_FLAG_Update);
@@ -138,6 +136,7 @@ void init_tim2_ex2(){
 }
 
 void init_tim8_ex2(){
+	
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM8, ENABLE);
 	
@@ -182,52 +181,65 @@ void init_tim8_ex2(){
 }
 
 void init_tim2_ex3(){
-		RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
-		
-		GPIO_PinAFConfig(GPIOA, GPIO_PinSource5, GPIO_AF_TIM2);
-		
-		GPIO_InitTypeDef GPIO_InitStruct;
-		GPIO_InitStruct.GPIO_Pin = GPIO_Pin_5;
-		GPIO_InitStruct.GPIO_Mode = GPIO_Mode_AF;
-		GPIO_InitStruct.GPIO_OType = GPIO_OType_PP;
-		GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_NOPULL;
-		GPIO_InitStruct.GPIO_Speed = GPIO_Speed_100MHz;
-		GPIO_Init(GPIOA, &GPIO_InitStruct);
-		
-		TIM_TimeBaseInitTypeDef TIM_InitStruct;
-		TIM_InitStruct.TIM_Period = 10000-1;
-		TIM_InitStruct.TIM_Prescaler = 840 - 1;
-		TIM_InitStruct.TIM_RepetitionCounter = 0;
-		TIM_InitStruct.TIM_CounterMode = TIM_CounterMode_Up;
-		TIM_InitStruct.TIM_ClockDivision = TIM_CKD_DIV1;
-		TIM_TimeBaseInit(TIM8, &TIM_InitStruct);
-		
-		TIM_ICInitTypeDef TIM_ICInitStruct;
-		TIM_ICInitStruct.TIM_Channel = TIM_Channel_1;
-		TIM_ICInitStruct.TIM_ICFilter = 0x0;
-		TIM_ICInitStruct.TIM_ICPolarity = TIM_ICPolarity_Falling;
-		TIM_ICInitStruct.TIM_ICPrescaler = TIM_ICPSC_DIV1;
-		TIM_ICInitStruct.TIM_ICSelection = TIM_ICSelection_DirectTI;
-		TIM_ICInit(TIM8, &TIM_ICInitStruct);
-		
-		TIM_Cmd(TIM8, ENABLE);
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE);
+	
+	GPIO_PinAFConfig(GPIOA, GPIO_PinSource5, GPIO_AF_TIM2);
+	
+	GPIO_InitTypeDef GPIO_InitStruct;
+	GPIO_InitStruct.GPIO_Pin = GPIO_Pin_5;
+	GPIO_InitStruct.GPIO_Mode = GPIO_Mode_AF;
+	GPIO_InitStruct.GPIO_OType = GPIO_OType_PP;
+	GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_NOPULL;
+	GPIO_InitStruct.GPIO_Speed = GPIO_Speed_100MHz;
+	GPIO_Init(GPIOA, &GPIO_InitStruct);
+	
+	TIM_TimeBaseInitTypeDef TIM_InitStruct;
+	TIM_InitStruct.TIM_Period = 10000-1;
+	TIM_InitStruct.TIM_Prescaler = 840 - 1;
+	TIM_InitStruct.TIM_RepetitionCounter = 0;
+	TIM_InitStruct.TIM_CounterMode = TIM_CounterMode_Up;
+	TIM_InitStruct.TIM_ClockDivision = TIM_CKD_DIV1;
+	TIM_TimeBaseInit(TIM2, &TIM_InitStruct);
+	
+	TIM_ICInitTypeDef TIM_ICInitStruct;
+	TIM_ICInitStruct.TIM_Channel = TIM_Channel_1;
+	TIM_ICInitStruct.TIM_ICFilter = 0x0;
+	TIM_ICInitStruct.TIM_ICPolarity = TIM_ICPolarity_Rising;
+	TIM_ICInitStruct.TIM_ICPrescaler = TIM_ICPSC_DIV1;
+	TIM_ICInitStruct.TIM_ICSelection = TIM_ICSelection_DirectTI;
+	TIM_ICInit(TIM2, &TIM_ICInitStruct);
+	
+	TIM_Cmd(TIM2, ENABLE);
 }
 
 void reset_pa5_ex3(){
-		GPIO_InitTypeDef GPIO_InitStruct;
-		GPIO_InitStruct.GPIO_Pin = GPIO_Pin_5;
-		GPIO_InitStruct.GPIO_Mode = GPIO_Mode_OUT;
-		GPIO_InitStruct.GPIO_OType = GPIO_OType_PP;
-		GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_NOPULL;
-		GPIO_InitStruct.GPIO_Speed = GPIO_Speed_100MHz;
-		GPIO_Init(GPIOA, &GPIO_InitStruct);
+	GPIO_InitTypeDef GPIO_InitStruct;
+	GPIO_InitStruct.GPIO_Pin = GPIO_Pin_5;
+	GPIO_InitStruct.GPIO_Mode = GPIO_Mode_OUT;
+	GPIO_InitStruct.GPIO_OType = GPIO_OType_PP;
+	GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_NOPULL;
+	GPIO_InitStruct.GPIO_Speed = GPIO_Speed_100MHz;
+	GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-		GPIO_ResetBits(GPIOA, GPIO_Pin_5);
-		
-		
-		GPIO_PinAFConfig(GPIOA, GPIO_PinSource5, GPIO_AF_TIM2);
-		GPIO_InitStruct.GPIO_Mode = GPIO_Mode_AF;
-		GPIO_Init(GPIOA, &GPIO_InitStruct);
+	GPIO_ResetBits(GPIOA, GPIO_Pin_5);
+	delay10ms(10);
+
+	GPIO_PinAFConfig(GPIOA, GPIO_PinSource5, GPIO_AF_TIM2);
+	GPIO_InitStruct.GPIO_Mode = GPIO_Mode_AF;
+	GPIO_Init(GPIOA, &GPIO_InitStruct);
 }
 
-
+uint8_t detect_tpad_ex3(){
+	reset_pa5_ex3();
+	
+	TIM_SetCounter(TIM2, 0);
+	TIM_ClearITPendingBit(TIM2,TIM_IT_CC1|TIM_IT_Update);
+	
+	while(TIM_GetFlagStatus(TIM2, TIM_IT_CC1) == RESET);
+	if(TIM_GetCounter(TIM2) > 6){
+		return 1;
+	}else{
+		return 0;
+	}
+}

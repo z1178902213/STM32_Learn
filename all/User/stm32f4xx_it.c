@@ -176,9 +176,10 @@ void USART1_IRQHandler(void)
 	}
 }
 
+extern __IO uint8_t tim_stop;
 void TIM6_DAC_IRQHandler(void){
 	if(TIM_GetFlagStatus(TIM6, TIM_IT_Update) != RESET){
-		toggle_green();
+		tim_stop = 1;
 		TIM_ClearITPendingBit(TIM6, TIM_IT_Update);
 	}
 }

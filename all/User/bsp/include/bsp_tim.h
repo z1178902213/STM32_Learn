@@ -8,6 +8,9 @@ void init_tim2_ex2(void);
 void init_tim8_ex2(void);
 void TIM8_CC_IRQHandler(void);
 void TIMx_NVIC_Configure(void);
+void init_tim2_ex3(void);
+void reset_pa5_ex3(void);
+uint8_t detect_tpad_ex3(void);
 
 #endif
 
