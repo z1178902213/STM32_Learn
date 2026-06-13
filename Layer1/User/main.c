@@ -22,8 +22,8 @@ void nvic_init(){
 }
 
 int main(void){
-	uint32_t test_address = 0x00001000;
-	
+	uint32_t test_address = 0x00002000;
+		
 	init_tim6();
 	init_usart1();
 	init_led();
@@ -37,30 +37,36 @@ int main(void){
 	ReadID();
 	delay(1000);
 	
+
+
 	printf("========== 擦除前扇区数据 ==========\n");
 	ReadBufferTest(test_address);
-	delay(1000);
 	printf("================================\n\n\n\n");
+	delay(100);
 	
 	printf("========== 测试擦除扇区 ==========\n");
 	SectorErase(test_address);
-	delay(1000);
-	printf("================================\n\n");
+	printf("================================\n\n\n\n");
+	delay(100);
 	
 	printf("========== 擦除后扇区数据 ==========\n");
 	ReadBufferTest(test_address);
-	delay(1000);
-	printf("================================\n\n");
+	printf("================================\n\n\n\n");
+	delay(100);
 	
 	printf("========== 向扇区写入数据 ==========\n");
 	ProgramPageTest(test_address);
-	delay(1000);
-	printf("================================\n\n");
+	printf("================================\n\n\n\n");
+	delay(100);
 	
 	printf("========== 写入数据后扇区数据 ==========\n");
 	ReadBufferTest(test_address);
-	delay(1000);
-	printf("================================\n\n");
+	printf("================================\n\n\n\n");
+	delay(100);
+	
+	printf("========== 校验数据一致性 ==========\n");
+	CompareData(test_address);
+	printf("================================\n\n\n\n");
 	
 	
 	while(1){

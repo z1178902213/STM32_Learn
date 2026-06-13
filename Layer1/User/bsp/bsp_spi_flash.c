@@ -71,36 +71,30 @@ void SectorErase(uint32_t address){
 // 用于测试Fast Read功能，默认读取给定地址的前256个字节，并通过串口输出结果
 void ReadBufferTest(uint32_t address){
 	uint16_t i = 0;
-	uint8_t data[256] = {0};
 	uint8_t byte2, byte3, byte4;
 	byte2 = (uint8_t)((address & 0x00ff0000) >> 16);
 	byte3 = (uint8_t)((address & 0x0000ff00) >> 8);
 	byte4 = (uint8_t)(address & 0x000000ff);
 	printf("[INFO] 解析后的地址0x%02X 0x%02X 0x%02X：\n", byte2, byte3, byte4);
-	
+	printf("[INFO] 数据接收完成，给定地址后256字节数据为：\n");
 	spi_generate_start();
-	spi_write_data(0x0b);
+	spi_write_data(0x0b);		// FastRead
 	spi_write_data(byte2);
 	spi_write_data(byte3);
 	spi_write_data(byte4);
 	spi_read_data();		// 这个数据按照定义应该是空数据
 	for(i = 0; i < 256; i++){
-		data[i] = spi_read_data();
-	}
-	spi_generate_stop();
-	
-	printf("[INFO] 数据接收完成，给定地址后256字节数据为：\n");
-	for(i = 0; i < 256; i++){
-		printf("0x%02X ", data[i]);
+		printf("0x%02X ", spi_read_data());
 		if((i + 1) % 16 == 0){
 			printf("\n");
 		}
 	}
+	spi_generate_stop();
 }
 
+uint8_t data[256] = {0};
 void ProgramPageTest(uint32_t address){
 	uint16_t i = 0;
-	uint8_t data[256] = {0};
 	// 给data数组赋初始值
 	for(i = 0; i < 256; i++){
 		data[i] = i*127/256;
@@ -110,7 +104,6 @@ void ProgramPageTest(uint32_t address){
 	byte2 = (uint8_t)((address & 0x00ff0000) >> 16);
 	byte3 = (uint8_t)((address & 0x0000ff00) >> 8);
 	byte4 = (uint8_t)(address & 0x000000ff);
-	printf("[INFO] 解析后的地址0x%02X 0x%02X 0x%02X：\n", byte2, byte3, byte4);
 	
 	WriteEnable();
 	
@@ -133,4 +126,28 @@ void ProgramPageTest(uint32_t address){
 	}
 }
 
-
+void CompareData(uint32_t address){
+	uint16_t i = 0;
+	uint8_t tmp_data = 0;
+	uint8_t byte2, byte3, byte4;
+	byte2 = (uint8_t)((address & 0x00ff0000) >> 16);
+	byte3 = (uint8_t)((address & 0x0000ff00) >> 8);
+	byte4 = (uint8_t)(address & 0x000000ff);
+	printf("[INFO] 开始进行数据校验，指定空间数据值一致将会直接显示\"一致\"\n");
+	spi_generate_start();
+	spi_write_data(0x0b);		// FastRead
+	spi_write_data(byte2);
+	spi_write_data(byte3);
+	spi_write_data(byte4);
+	spi_read_data();		// 这个数据按照定义应该是空数据
+	for(i = 0; i < 256; i++){
+		tmp_data = spi_read_data();
+		if(tmp_data == data[i]){
+			printf("一致 ");
+		}
+		if((i + 1) % 16 == 0){
+			printf("\n");
+		}
+	}
+	spi_generate_stop();
+}

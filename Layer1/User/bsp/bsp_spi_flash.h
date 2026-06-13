@@ -18,6 +18,7 @@ void WaitForBusy(void);
 void SectorErase(uint32_t address);
 void ReadBufferTest(uint32_t address);
 void ProgramPageTest(uint32_t address);
+void CompareData(uint32_t address);
 
 
 #endif
