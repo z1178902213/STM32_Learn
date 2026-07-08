@@ -161,6 +161,8 @@
   *         the configuration information for the specified GPIO peripheral.
   * @retval None
   */
+// HAL库的GPIO初始化和标准库的初始化有一点很不同
+// 直接可以一起初始化GPIO复用功能，同时输出模式是PP还是OD直接在mode参数中准备好了。
 void HAL_GPIO_Init(GPIO_TypeDef  *GPIOx, GPIO_InitTypeDef *GPIO_Init)
 {
   uint32_t position;
@@ -176,39 +178,54 @@ void HAL_GPIO_Init(GPIO_TypeDef  *GPIOx, GPIO_InitTypeDef *GPIO_Init)
   /* Configure the port pins */
   for(position = 0U; position < GPIO_NUMBER; position++)
   {
-    /* Get the IO position */
+    /* 获取IO位置 */
     ioposition = 0x01U << position;
-    /* Get the current IO position */
+    /* 获取当前IO位置 */
     iocurrent = (uint32_t)(GPIO_Init->Pin) & ioposition;
+    // 为什么要这样检测GPIO的Pin呢？GPIO_Init->Pin里面不是已经制定好了gpio_pin了吗？
+    // 该不会就是为了保证用户在使用这个函数的时候，输入的 GPIO_pin 是在可控的范围内？感觉有可能。感觉有可能也是为了一些兼容性吧。
+    // 阅读了后面的代码，发现这两步操作是可以找出position，也是就是用户输入的pin的标号。即如果用户传入GPIO_Pin_15，这里可以得到position=15，如果直接用GPIO_Init->Pin可能会得到一个0x01<<15的值，这不合理。
 
     if(iocurrent == ioposition)
     {
-      /*--------------------- GPIO Mode Configuration ------------------------*/
+      /*--------------------- GPIO的Mode的配置 ------------------------*/
       /* In case of Output or Alternate function mode selection */
+      // 因为每个GPIO的mode的配置，在寄存器里面是占两位的，因此，这里有一个 GPIO_MODE=0b0011，是关注传入参数的Mode的低两位，防止用户传入的Mode参数是一个不合法的值，导致比较时出错。
+      // 如果是配置成输出或者复用模式，就做以下配置
       if(((GPIO_Init->Mode & GPIO_MODE) == MODE_OUTPUT) || \
           (GPIO_Init->Mode & GPIO_MODE) == MODE_AF)
       {
         /* Check the Speed parameter */
+				// 自己学的时候不用检查传入的形参，不需要写得健壮性这么强。
         assert_param(IS_GPIO_SPEED(GPIO_Init->Speed));
-        /* Configure the IO Speed */
+        /* 配置IO的Speed */
+				// 先把对应位置清零，然后写入执行的speed的值
+        // 因为GPIOx->OSPEEDR在板子运行以后里面的值是真实值，如果直接暴力直接赋值写入，会导致其他GPIOx_pin的对应speed出问题
+        // 所以这里先把需要修改的位置找出来，清零，然后在用"或"操作赋值。后面也有很多同类操作
         temp = GPIOx->OSPEEDR; 
         temp &= ~(GPIO_OSPEEDER_OSPEEDR0 << (position * 2U));
         temp |= (GPIO_Init->Speed << (position * 2U));
         GPIOx->OSPEEDR = temp;
 
         /* Configure the IO Output Type */
+				// 和上面类似，先保存初始值，然后清空对应位置的值，最后赋值
+				// 但是这个不知道为啥用GPIO_Init->Mode & OUTPUT_TYPE去操作，看得出来是只针对输出模式做配置
+				// 但是这么做感觉就是在炫技？或者减少一点点代码量？还是有别的特殊用途？
         temp = GPIOx->OTYPER;
         temp &= ~(GPIO_OTYPER_OT_0 << position) ;
         temp |= (((GPIO_Init->Mode & OUTPUT_TYPE) >> OUTPUT_TYPE_Pos) << position);
         GPIOx->OTYPER = temp;
        }
-
+			
+			// 如果不是模拟模式，就配置一下上拉下拉的模式。因为模拟模式下弱上拉和下拉电阻被关闭了，配置也没用。
       if((GPIO_Init->Mode & GPIO_MODE) != MODE_ANALOG)
       {
         /* Check the parameters */
         assert_param(IS_GPIO_PULL(GPIO_Init->Pull));
         
         /* Activate the Pull-up or Pull down resistor for the current IO */
+				// 还是类似的操作，先用tmp保存原始值，然后指定位置清零，最后重新赋值以后重新写回到寄存器中。
+				// 主要还是因为要32位同时操作，要是只能直接操作比特位，我估计不会这么写吧。
         temp = GPIOx->PUPDR;
         temp &= ~(GPIO_PUPDR_PUPDR0 << (position * 2U));
         temp |= ((GPIO_Init->Pull) << (position * 2U));
@@ -221,6 +238,10 @@ void HAL_GPIO_Init(GPIO_TypeDef  *GPIOx, GPIO_InitTypeDef *GPIO_Init)
         /* Check the Alternate function parameter */
         assert_param(IS_GPIO_AF(GPIO_Init->Alternate));
         /* Configure Alternate function mapped with the current IO */
+				// 这个感觉很屌，position本来就是0-15的值，对应0x0000-0x1111，右移3位刚好保留了高位。。
+				// 然后AFRx的大小是32位，每个pin的标号的AF配置占4位，那AFRx一个就能配置8个pin，得两个32位AFRx才能覆盖全部的pin
+				// 然后这个数组的组成顺序刚好就是position>>3以后的高位的值决定的操作的高位还是低位，这样一句话就拿到了高低位的值
+				// 简直神了这个代码，以后涉及到有高低寄存器的代码就这么写
         temp = GPIOx->AFR[position >> 3U];
         temp &= ~(0xFU << ((uint32_t)(position & 0x07U) * 4U)) ;
         temp |= ((uint32_t)(GPIO_Init->Alternate) << (((uint32_t)position & 0x07U) * 4U));
@@ -228,11 +249,13 @@ void HAL_GPIO_Init(GPIO_TypeDef  *GPIOx, GPIO_InitTypeDef *GPIO_Init)
       }
 
       /* Configure IO Direction mode (Input, Output, Alternate or Analog) */
+			// 最后才配置MODER寄存器？有什么讲究？还是因为没if，所以习惯性写在最后？
       temp = GPIOx->MODER;
       temp &= ~(GPIO_MODER_MODER0 << (position * 2U));
       temp |= ((GPIO_Init->Mode & GPIO_MODE) << (position * 2U));
       GPIOx->MODER = temp;
 
+			// 外部中断的配置情况，我先不考虑了，这个居然也写到init里面了，我记得标准库好像不这么弄啊。
       /*--------------------- EXTI Mode Configuration ------------------------*/
       /* Configure the External Interrupt or event for the current IO */
       if((GPIO_Init->Mode & EXTI_MODE) != 0x00U)

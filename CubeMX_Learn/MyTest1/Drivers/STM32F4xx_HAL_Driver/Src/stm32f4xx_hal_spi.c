@@ -339,6 +339,7 @@ HAL_StatusTypeDef HAL_SPI_Init(SPI_HandleTypeDef *hspi)
     else
     {
       /* Baudrate prescaler not use in Motoraola Slave mode. force to default value */
+			// 频率配置不支持从机模式，默认随便配置成2分频
       hspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
     }
   }
@@ -397,6 +398,7 @@ HAL_StatusTypeDef HAL_SPI_Init(SPI_HandleTypeDef *hspi)
   /*----------------------- SPIx CR1 & CR2 Configuration ---------------------*/
   /* Configure : SPI Mode, Communication Mode, Data size, Clock polarity and phase, NSS management,
   Communication speed, First bit and CRC calculation state */
+	// 这SPI的Init也没有相关的Init函数，直接这里就配置好了寄存器。
   WRITE_REG(hspi->Instance->CR1, ((hspi->Init.Mode & (SPI_CR1_MSTR | SPI_CR1_SSI)) |
                                   (hspi->Init.Direction & (SPI_CR1_RXONLY | SPI_CR1_BIDIMODE)) |
                                   (hspi->Init.DataSize & SPI_CR1_DFF) |
@@ -794,6 +796,7 @@ HAL_StatusTypeDef HAL_SPI_Transmit(SPI_HandleTypeDef *hspi, const uint8_t *pData
   __HAL_LOCK(hspi);
 
   /* Set the transaction information */
+	// 初始化SPI句柄中发送的信息
   hspi->State       = HAL_SPI_STATE_BUSY_TX;
   hspi->ErrorCode   = HAL_SPI_ERROR_NONE;
   hspi->pTxBuffPtr  = (const uint8_t *)pData;
@@ -801,6 +804,7 @@ HAL_StatusTypeDef HAL_SPI_Transmit(SPI_HandleTypeDef *hspi, const uint8_t *pData
   hspi->TxXferCount = Size;
 
   /*Init field not used in handle to zero */
+	// 初始化SPI句柄中接受的信息
   hspi->pRxBuffPtr  = (uint8_t *)NULL;
   hspi->RxXferSize  = 0U;
   hspi->RxXferCount = 0U;
@@ -808,6 +812,7 @@ HAL_StatusTypeDef HAL_SPI_Transmit(SPI_HandleTypeDef *hspi, const uint8_t *pData
   hspi->RxISR       = NULL;
 
   /* Configure communication direction : 1Line */
+	// 单线模式的匹配校验吧，我做双线全双工，不考虑这个
   if (hspi->Init.Direction == SPI_DIRECTION_1LINE)
   {
     /* Disable SPI Peripheral before set 1Line direction (BIDIOE bit) */
@@ -824,6 +829,7 @@ HAL_StatusTypeDef HAL_SPI_Transmit(SPI_HandleTypeDef *hspi, const uint8_t *pData
 #endif /* USE_SPI_CRC */
 
   /* Check if the SPI is already enabled */
+	// 检查SPI总线是否已经准备好了，如果没有就使能一下SPI
   if ((hspi->Instance->CR1 & SPI_CR1_SPE) != SPI_CR1_SPE)
   {
     /* Enable SPI peripheral */
@@ -831,6 +837,7 @@ HAL_StatusTypeDef HAL_SPI_Transmit(SPI_HandleTypeDef *hspi, const uint8_t *pData
   }
 
   /* Transmit data in 16 Bit mode */
+	// 发送16bit数据的模式
   if (hspi->Init.DataSize == SPI_DATASIZE_16BIT)
   {
     if ((hspi->Init.Mode == SPI_MODE_SLAVE) || (initial_TxXferCount == 0x01U))
@@ -862,8 +869,10 @@ HAL_StatusTypeDef HAL_SPI_Transmit(SPI_HandleTypeDef *hspi, const uint8_t *pData
     }
   }
   /* Transmit data in 8 Bit mode */
+	// 发送8bit数据的模式
   else
   {
+		// 如果是从机模式，或者是发送数据只有1字节，那就直接发送了。
     if ((hspi->Init.Mode == SPI_MODE_SLAVE) || (initial_TxXferCount == 0x01U))
     {
       *((__IO uint8_t *)&hspi->Instance->DR) = *((const uint8_t *)hspi->pTxBuffPtr);
@@ -873,6 +882,7 @@ HAL_StatusTypeDef HAL_SPI_Transmit(SPI_HandleTypeDef *hspi, const uint8_t *pData
     while (hspi->TxXferCount > 0U)
     {
       /* Wait until TXE flag is set to send data */
+			// 等待TXE标志位，置位后发送数据
       if (__HAL_SPI_GET_FLAG(hspi, SPI_FLAG_TXE))
       {
         *((__IO uint8_t *)&hspi->Instance->DR) = *((const uint8_t *)hspi->pTxBuffPtr);
@@ -882,6 +892,7 @@ HAL_StatusTypeDef HAL_SPI_Transmit(SPI_HandleTypeDef *hspi, const uint8_t *pData
       else
       {
         /* Timeout management */
+				// 超时处理
         if ((((HAL_GetTick() - tickstart) >=  Timeout) && (Timeout != HAL_MAX_DELAY)) || (Timeout == 0U))
         {
           hspi->State = HAL_SPI_STATE_READY;
@@ -1007,6 +1018,7 @@ HAL_StatusTypeDef HAL_SPI_Receive(SPI_HandleTypeDef *hspi, uint8_t *pData, uint1
   }
 
   /* Receive data in 8 Bit mode */
+	// 8bit模式下，接收数据
   if (hspi->Init.DataSize == SPI_DATASIZE_8BIT)
   {
     /* Transfer loop */

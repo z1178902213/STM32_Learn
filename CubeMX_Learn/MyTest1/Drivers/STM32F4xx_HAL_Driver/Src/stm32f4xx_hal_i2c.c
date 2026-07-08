@@ -491,6 +491,7 @@ HAL_StatusTypeDef HAL_I2C_Init(I2C_HandleTypeDef *hi2c)
     hi2c->MspInitCallback(hi2c);
 #else
     /* Init the low level hardware : GPIO, CLOCK, NVIC */
+		// I2C基础硬件初始化
     HAL_I2C_MspInit(hi2c);
 #endif /* USE_HAL_I2C_REGISTER_CALLBACKS */
   }
@@ -501,6 +502,7 @@ HAL_StatusTypeDef HAL_I2C_Init(I2C_HandleTypeDef *hi2c)
   __HAL_I2C_DISABLE(hi2c);
 
   /*Reset I2C*/
+	// 软件复位I2C设备
   hi2c->Instance->CR1 |= I2C_CR1_SWRST;
   hi2c->Instance->CR1 &= ~I2C_CR1_SWRST;
 
@@ -508,32 +510,39 @@ HAL_StatusTypeDef HAL_I2C_Init(I2C_HandleTypeDef *hi2c)
   pclk1 = HAL_RCC_GetPCLK1Freq();
 
   /* Check the minimum allowed PCLK1 frequency */
+	// 自动检查传入的目标I2C频率是否合法，主要和PCLK1进行对比
   if (I2C_MIN_PCLK_FREQ(pclk1, hi2c->Init.ClockSpeed) == 1U)
   {
     return HAL_ERROR;
   }
 
   /* Calculate frequency range */
+	// 获取PCLK1时钟频率，转换成MHz的单位
   freqrange = I2C_FREQRANGE(pclk1);
 
   /*---------------------------- I2Cx CR2 Configuration ----------------------*/
   /* Configure I2Cx: Frequency range */
+	// 配置FREQ位
   MODIFY_REG(hi2c->Instance->CR2, I2C_CR2_FREQ, freqrange);
 
   /*---------------------------- I2Cx TRISE Configuration --------------------*/
   /* Configure I2Cx: Rise Time */
+	// 配置TRISE，必须配置为最大SCL时间/TPCLK1 + 1，标准模式下最大SCL时间1000ns，快速模式最大SCL时间300ns
   MODIFY_REG(hi2c->Instance->TRISE, I2C_TRISE_TRISE, I2C_RISE_TIME(freqrange, hi2c->Init.ClockSpeed));
 
   /*---------------------------- I2Cx CCR Configuration ----------------------*/
   /* Configure I2Cx: Speed */
+	// 配置I2C速率，根据公式计算CCR的值
   MODIFY_REG(hi2c->Instance->CCR, (I2C_CCR_FS | I2C_CCR_DUTY | I2C_CCR_CCR), I2C_SPEED(pclk1, hi2c->Init.ClockSpeed, hi2c->Init.DutyCycle));
 
   /*---------------------------- I2Cx CR1 Configuration ----------------------*/
   /* Configure I2Cx: Generalcall and NoStretch mode */
+	// 时钟延长和广播使能，先不管，用不到。
   MODIFY_REG(hi2c->Instance->CR1, (I2C_CR1_ENGC | I2C_CR1_NOSTRETCH), (hi2c->Init.GeneralCallMode | hi2c->Init.NoStretchMode));
 
   /*---------------------------- I2Cx OAR1 Configuration ---------------------*/
   /* Configure I2Cx: Own Address1 and addressing mode */
+	// 配置自己作为I2C主机的地址
   MODIFY_REG(hi2c->Instance->OAR1, (I2C_OAR1_ADDMODE | I2C_OAR1_ADD8_9 | I2C_OAR1_ADD1_7 | I2C_OAR1_ADD0), (hi2c->Init.AddressingMode | hi2c->Init.OwnAddress1));
 
   /*---------------------------- I2Cx OAR2 Configuration ---------------------*/
@@ -541,6 +550,7 @@ HAL_StatusTypeDef HAL_I2C_Init(I2C_HandleTypeDef *hi2c)
   MODIFY_REG(hi2c->Instance->OAR2, (I2C_OAR2_ENDUAL | I2C_OAR2_ADD2), (hi2c->Init.DualAddressMode | hi2c->Init.OwnAddress2));
 
   /* Enable the selected I2C peripheral */
+	// 使能I2C外设接口
   __HAL_I2C_ENABLE(hi2c);
 
   hi2c->ErrorCode = HAL_I2C_ERROR_NONE;
@@ -1070,6 +1080,7 @@ HAL_StatusTypeDef HAL_I2C_Master_Transmit(I2C_HandleTypeDef *hi2c, uint16_t DevA
     __HAL_LOCK(hi2c);
 
     /* Check if the I2C is already enabled */
+		// 检查I2C外设使能情况，如果没有使能则将其使能
     if ((hi2c->Instance->CR1 & I2C_CR1_PE) != I2C_CR1_PE)
     {
       /* Enable I2C peripheral */
@@ -1084,12 +1095,14 @@ HAL_StatusTypeDef HAL_I2C_Master_Transmit(I2C_HandleTypeDef *hi2c, uint16_t DevA
     hi2c->ErrorCode   = HAL_I2C_ERROR_NONE;
 
     /* Prepare transfer parameters */
+		// 初始化参数，这里是将传入的参数加入到I2C的句柄中
     hi2c->pBuffPtr    = pData;
     hi2c->XferCount   = Size;
     hi2c->XferSize    = hi2c->XferCount;
     hi2c->XferOptions = I2C_NO_OPTION_FRAME;
 
     /* Send Slave Address */
+		// 发送从机地址
     if (I2C_MasterRequestWrite(hi2c, DevAddress, Timeout, tickstart) != HAL_OK)
     {
       return HAL_ERROR;
@@ -1101,6 +1114,7 @@ HAL_StatusTypeDef HAL_I2C_Master_Transmit(I2C_HandleTypeDef *hi2c, uint16_t DevA
     while (hi2c->XferSize > 0U)
     {
       /* Wait until TXE flag is set */
+			// 等待TXE，也就是等待发送数据寄存器为空，表示发送完数据，然后才能继续发数据
       if (I2C_WaitOnTXEFlagUntilTimeout(hi2c, Timeout, tickstart) != HAL_OK)
       {
         if (hi2c->ErrorCode == HAL_I2C_ERROR_AF)
@@ -1120,10 +1134,12 @@ HAL_StatusTypeDef HAL_I2C_Master_Transmit(I2C_HandleTypeDef *hi2c, uint16_t DevA
       /* Update counter */
       hi2c->XferCount--;
       hi2c->XferSize--;
-
+			
+			// 判断BTF位是否为1，如果是1就是这个字节的数据发送完了，如果还有数据要发送，则继续发送
       if ((__HAL_I2C_GET_FLAG(hi2c, I2C_FLAG_BTF) == SET) && (hi2c->XferSize != 0U))
       {
         /* Write data to DR */
+				// 向DR数据寄存器中写入数据，会自动将TxE置位1，写DR以后，BTF会自动被设为0
         hi2c->Instance->DR = *hi2c->pBuffPtr;
 
         /* Increment Buffer pointer */
@@ -1135,6 +1151,7 @@ HAL_StatusTypeDef HAL_I2C_Master_Transmit(I2C_HandleTypeDef *hi2c, uint16_t DevA
       }
 
       /* Wait until BTF flag is set */
+			// 等待BTF位被设置成1，也就是数据发送完成，如果没有被设置成1最后超时了，则返回错误，发送停止位。
       if (I2C_WaitOnBTFFlagUntilTimeout(hi2c, Timeout, tickstart) != HAL_OK)
       {
         if (hi2c->ErrorCode == HAL_I2C_ERROR_AF)
@@ -1205,6 +1222,7 @@ HAL_StatusTypeDef HAL_I2C_Master_Receive(I2C_HandleTypeDef *hi2c, uint16_t DevAd
     hi2c->ErrorCode   = HAL_I2C_ERROR_NONE;
 
     /* Prepare transfer parameters */
+		// 初始化参数
     hi2c->pBuffPtr    = pData;
     hi2c->XferCount   = Size;
     hi2c->XferSize    = hi2c->XferCount;
@@ -1215,7 +1233,9 @@ HAL_StatusTypeDef HAL_I2C_Master_Receive(I2C_HandleTypeDef *hi2c, uint16_t DevAd
     {
       return HAL_ERROR;
     }
-
+		
+		// 根据缓冲区数据数量来发送数据
+		// 缓冲区没数据了，发送STOP信号
     if (hi2c->XferSize == 0U)
     {
       /* Clear ADDR flag */
@@ -1224,6 +1244,7 @@ HAL_StatusTypeDef HAL_I2C_Master_Receive(I2C_HandleTypeDef *hi2c, uint16_t DevAd
       /* Generate Stop */
       SET_BIT(hi2c->Instance->CR1, I2C_CR1_STOP);
     }
+		// 缓冲区剩1个数据，发送STOP信号，因为要停止接收之前先发信号。
     else if (hi2c->XferSize == 1U)
     {
       /* Disable Acknowledge */
@@ -1235,6 +1256,7 @@ HAL_StatusTypeDef HAL_I2C_Master_Receive(I2C_HandleTypeDef *hi2c, uint16_t DevAd
       /* Generate Stop */
       SET_BIT(hi2c->Instance->CR1, I2C_CR1_STOP);
     }
+		// 缓冲区剩2个数据，没看懂，不知道为啥这么弄。
     else if (hi2c->XferSize == 2U)
     {
       /* Disable Acknowledge */
@@ -1246,6 +1268,7 @@ HAL_StatusTypeDef HAL_I2C_Master_Receive(I2C_HandleTypeDef *hi2c, uint16_t DevAd
       /* Clear ADDR flag */
       __HAL_I2C_CLEAR_ADDRFLAG(hi2c);
     }
+		// 缓冲区剩的数据比较多，继续发送数据。
     else
     {
       /* Enable Acknowledge */
@@ -1339,6 +1362,7 @@ HAL_StatusTypeDef HAL_I2C_Master_Receive(I2C_HandleTypeDef *hi2c, uint16_t DevAd
           }
 
           /* Generate Stop */
+					// 剩2个字节，提前2个字节发送STOP信号。。我有点不理解，要提早这么多吗？
           SET_BIT(hi2c->Instance->CR1, I2C_CR1_STOP);
 
           /* Read data from DR */
@@ -6609,6 +6633,7 @@ static HAL_StatusTypeDef I2C_MasterRequestWrite(I2C_HandleTypeDef *hi2c, uint16_
   else
   {
     /* Send header of slave address */
+		// 10位的从机地址，要先发头部高2位，再发低8位。
     hi2c->Instance->DR = I2C_10BIT_HEADER_WRITE(DevAddress);
 
     /* Wait until ADD10 flag is set */

@@ -313,12 +313,14 @@ HAL_StatusTypeDef HAL_ADC_Init(ADC_HandleTypeDef *hadc)
   HAL_StatusTypeDef tmp_hal_status = HAL_OK;
 
   /* Check ADC handle */
+  // 检查传入的ADC句柄是否不为空
   if (hadc == NULL)
   {
     return HAL_ERROR;
   }
 
   /* Check the parameters */
+	// 参数合法性校验
   assert_param(IS_ADC_ALL_INSTANCE(hadc->Instance));
   assert_param(IS_ADC_CLOCKPRESCALER(hadc->Init.ClockPrescaler));
   assert_param(IS_ADC_RESOLUTION(hadc->Init.Resolution));
@@ -354,32 +356,43 @@ HAL_StatusTypeDef HAL_ADC_Init(ADC_HandleTypeDef *hadc)
     hadc->MspInitCallback(hadc);
 #else
     /* Init the low level hardware */
+		// Msp也是HAL库中常见的角色，就是初始化一些基础依赖项，比如初始化相关的GPIO啥的
     HAL_ADC_MspInit(hadc);
 #endif /* USE_HAL_ADC_REGISTER_CALLBACKS */
 
     /* Initialize ADC error code */
+		// 清除ADC的错误标志位。自己手搓的时候不需要太在乎这个
     ADC_CLEAR_ERRORCODE(hadc);
 
     /* Allocate lock resource and initialize it */
+		// 这个是为啥？
     hadc->Lock = HAL_UNLOCKED;
   }
 
   /* Configuration of ADC parameters if previous preliminary actions are      */
   /* correctly completed.                                                     */
+	// 如果前面的校验都通过，则配置ADC初始化参数
   if (HAL_IS_BIT_CLR(hadc->State, HAL_ADC_STATE_ERROR_INTERNAL))
   {
     /* Set ADC state */
+		// 将ADC状态切换到忙
+		// 这里的hadc->State实际上是专门为句柄配置的关于ADC的一些状态参数，其实和寄存器没有任何关系，只是HAL库中间层面上用于表示状态的一个东西。
+		// 因此这里的ADC_STATE_CLR_SET实际上只是给hadc->State更换一个当前的状态值。
+		// ADC_STATE_CLR_SET传入3个参数，REG, CLEARMASK, SETMASK。分析代码可以知道，这玩意实际上就是把CLEARMASK位都置0，把SETMASK位都置1。
+		// 实际上就是一个很抽象的东西，HAL库抽象层搞的骚操作。看过去感觉很没意思。
     ADC_STATE_CLR_SET(hadc->State,
                       HAL_ADC_STATE_REG_BUSY | HAL_ADC_STATE_INJ_BUSY,
                       HAL_ADC_STATE_BUSY_INTERNAL);
 
     /* Set ADC parameters */
+		// 根据ADC句柄中配置好的初始化参数，进行初始化
     ADC_Init(hadc);
 
     /* Set ADC error code to none */
     ADC_CLEAR_ERRORCODE(hadc);
 
     /* Set the ADC state */
+		// 这个ADC_STATE_CLR_SET的宏定义，意思是ADC_STATE_CLEAR_SET的意思。我还以为CLR是ADC的什么寄存器，无语了。那估计后面的HAL库相关的代码应该也会有类似的情况。
     ADC_STATE_CLR_SET(hadc->State,
                       HAL_ADC_STATE_BUSY_INTERNAL,
                       HAL_ADC_STATE_READY);
@@ -708,10 +721,9 @@ __weak void HAL_ADC_MspDeInit(ADC_HandleTypeDef *hadc)
   */
 
 /**
-  * @brief  Enables ADC and starts conversion of the regular channels.
-  * @param  hadc pointer to a ADC_HandleTypeDef structure that contains
-  *         the configuration information for the specified ADC.
-  * @retval HAL status
+  * @brief  使能ADC并开启规则通道的转换
+  * @param  传入ADC句柄
+  * @retval ADC状态
   */
 HAL_StatusTypeDef HAL_ADC_Start(ADC_HandleTypeDef *hadc)
 {
@@ -743,6 +755,7 @@ HAL_StatusTypeDef HAL_ADC_Start(ADC_HandleTypeDef *hadc)
   }
 
   /* Start conversion if ADC is effectively enabled */
+	// 如果ADC已经使能，开启转换
   if (HAL_IS_BIT_SET(hadc->Instance->CR2, ADC_CR2_ADON))
   {
     /* Set ADC state                                                          */
@@ -754,6 +767,7 @@ HAL_StatusTypeDef HAL_ADC_Start(ADC_HandleTypeDef *hadc)
 
     /* If conversions on group regular are also triggering group injected,    */
     /* update ADC state.                                                      */
+		// 如果配置了注入组自动转换，就给HAL_ADC_STATE_INJ_BUSY标志位设置为1，表示注入组状态忙
     if (READ_BIT(hadc->Instance->CR1, ADC_CR1_JAUTO) != RESET)
     {
       ADC_STATE_CLR_SET(hadc->State, HAL_ADC_STATE_INJ_EOC, HAL_ADC_STATE_INJ_BUSY);
@@ -797,6 +811,7 @@ HAL_StatusTypeDef HAL_ADC_Start(ADC_HandleTypeDef *hadc)
         if ((hadc->Instance->CR2 & ADC_CR2_EXTEN) == RESET)
         {
           /* Enable the selected ADC software conversion for regular group */
+					// 好像这句就是ADC的启动触发的代码，前面做的大量铺垫都是为了这行代码正确执行。
           hadc->Instance->CR2 |= (uint32_t)ADC_CR2_SWSTART;
         }
 #if defined(ADC2) && defined(ADC3)
@@ -809,6 +824,7 @@ HAL_StatusTypeDef HAL_ADC_Start(ADC_HandleTypeDef *hadc)
       if ((hadc->Instance == ADC1) && ((hadc->Instance->CR2 & ADC_CR2_EXTEN) == RESET))
       {
         /* Enable the selected ADC software conversion for regular group */
+				// 好像这句就是ADC的启动触发的代码，前面做的大量铺垫都是为了这行代码正确执行。
         hadc->Instance->CR2 |= (uint32_t)ADC_CR2_SWSTART;
       }
     }
@@ -1905,12 +1921,15 @@ uint32_t HAL_ADC_GetError(ADC_HandleTypeDef *hadc)
   */
 static void ADC_Init(ADC_HandleTypeDef *hadc)
 {
+	// 先配置通用控制寄存器CCR，再配置CR1、CR2、SQR寄存器。
   ADC_Common_TypeDef *tmpADC_Common;
 
   /* Set ADC parameters */
   /* Pointer to the common control register to which is belonging hadc    */
   /* (Depending on STM32F4 product, there may be up to 3 ADCs and 1 common */
   /* control register)                                                    */
+	// STM32的HAL库为了宏定义统一的风格，都定义了传入参数，但是实际上用不用不一定，但是传还是要传入。
+	// 这里因为要修改的是通用寄存器的数值，因此调用了这个tmpADC_Common
   tmpADC_Common = ADC_COMMON_REGISTER(hadc);
 
   /* Set the ADC clock prescaler */
@@ -1918,6 +1937,7 @@ static void ADC_Init(ADC_HandleTypeDef *hadc)
   tmpADC_Common->CCR |=  hadc->Init.ClockPrescaler;
 
   /* Set ADC scan mode */
+	// 这下面的内容就是涉及到了指定的寄存器的内容
   hadc->Instance->CR1 &= ~(ADC_CR1_SCAN);
   hadc->Instance->CR1 |=  ADC_CR1_SCANCONV(hadc->Init.ScanConvMode);
 

@@ -234,6 +234,8 @@ __weak HAL_StatusTypeDef HAL_RCC_OscConfig(const RCC_OscInitTypeDef  *RCC_OscIni
     /* Check the parameters */
     assert_param(IS_RCC_HSE(RCC_OscInitStruct->HSEState));
     /* When the HSE is used as system clock or clock source for PLL in these cases HSE will not disabled */
+		// 这里配置HSE作为PLLCLK作为SYSCLK之前，好像现检测是不是已经用HSE作为输入源了
+		// 这样检测难道是为了防止重复配置？还是另有企图？
     if ((__HAL_RCC_GET_SYSCLK_SOURCE() == RCC_CFGR_SWS_HSE) || \
         ((__HAL_RCC_GET_SYSCLK_SOURCE() == RCC_CFGR_SWS_PLL) && ((RCC->PLLCFGR & RCC_PLLCFGR_PLLSRC) == RCC_PLLCFGR_PLLSRC_HSE)))
     {
@@ -245,15 +247,18 @@ __weak HAL_StatusTypeDef HAL_RCC_OscConfig(const RCC_OscInitTypeDef  *RCC_OscIni
     else
     {
       /* Set the new HSE configuration ---------------------------------------*/
-      __HAL_RCC_HSE_CONFIG(RCC_OscInitStruct->HSEState);
+      // 这里是直接给HSE配置状态使能了
+			__HAL_RCC_HSE_CONFIG(RCC_OscInitStruct->HSEState);
 
       /* Check the HSE State */
+			// 检查HSE的状态，如果调用这个函数是为了使能HSE，那就等等看HSE是否真的使能了
       if ((RCC_OscInitStruct->HSEState) != RCC_HSE_OFF)
       {
         /* Get Start Tick */
         tickstart = HAL_GetTick();
 
         /* Wait till HSE is ready */
+				// 这是一个超时检测，很多好像都会搞个超时的检测
         while (__HAL_RCC_GET_FLAG(RCC_FLAG_HSERDY) == RESET)
         {
           if ((HAL_GetTick() - tickstart) > HSE_TIMEOUT_VALUE)
@@ -265,6 +270,7 @@ __weak HAL_StatusTypeDef HAL_RCC_OscConfig(const RCC_OscInitTypeDef  *RCC_OscIni
       else
       {
         /* Get Start Tick */
+				// 这边也是同理，如果要关HSE，也是要等到HSE状态稳定
         tickstart = HAL_GetTick();
 
         /* Wait till HSE is bypassed or disabled */
@@ -462,8 +468,10 @@ __weak HAL_StatusTypeDef HAL_RCC_OscConfig(const RCC_OscInitTypeDef  *RCC_OscIni
   if ((RCC_OscInitStruct->PLL.PLLState) != RCC_PLL_NONE)
   {
     /* Check if the PLL is used as system clock or not */
+		// SYSCLK如果不是PLLCLK
     if (__HAL_RCC_GET_SYSCLK_SOURCE() != RCC_CFGR_SWS_PLL)
     {
+			// 判断要把PLL启动的时候，做下面的操作，如果要启动就把PLLCFGR配置一下
       if ((RCC_OscInitStruct->PLL.PLLState) == RCC_PLL_ON)
       {
         /* Check the parameters */
@@ -474,6 +482,7 @@ __weak HAL_StatusTypeDef HAL_RCC_OscConfig(const RCC_OscInitTypeDef  *RCC_OscIni
         assert_param(IS_RCC_PLLQ_VALUE(RCC_OscInitStruct->PLL.PLLQ));
 
         /* Disable the main PLL. */
+				// 要先关掉PLL才能配置
         __HAL_RCC_PLL_DISABLE();
 
         /* Get Start Tick */
@@ -489,6 +498,7 @@ __weak HAL_StatusTypeDef HAL_RCC_OscConfig(const RCC_OscInitTypeDef  *RCC_OscIni
         }
 
         /* Configure the main PLL clock source, multiplication and division factors. */
+				// 这里的操作全部都是“与”操作，这些变量基本都是啥0x00080000之类的值，与到一起最后统一一起写入寄存器。
         WRITE_REG(RCC->PLLCFGR, (RCC_OscInitStruct->PLL.PLLSource                                            | \
                                  RCC_OscInitStruct->PLL.PLLM                                                 | \
                                  (RCC_OscInitStruct->PLL.PLLN << RCC_PLLCFGR_PLLN_Pos)             | \
@@ -511,6 +521,7 @@ __weak HAL_StatusTypeDef HAL_RCC_OscConfig(const RCC_OscInitTypeDef  *RCC_OscIni
       }
       else
       {
+				// 这里处理如果是为了关闭PLL，那就只要关闭就好了。
         /* Disable the main PLL. */
         __HAL_RCC_PLL_DISABLE();
 
@@ -530,6 +541,9 @@ __weak HAL_StatusTypeDef HAL_RCC_OscConfig(const RCC_OscInitTypeDef  *RCC_OscIni
     else
     {
       /* Check if there is a request to disable the PLL used as System clock source */
+			// 这里的状态，是已经把PLLCLK作为SYSCLK了
+			// 已经是的情况下，如果要关闭PLL，就报错，因为关不掉了。。
+			// 其实没看懂，。这里不知道干嘛
       if ((RCC_OscInitStruct->PLL.PLLState) == RCC_PLL_OFF)
       {
         return HAL_ERROR;
