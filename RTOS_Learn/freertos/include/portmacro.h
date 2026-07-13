@@ -26,7 +26,6 @@ typedef unsigned long UBaseType_t;
 	#define portMAX_DELAY ( TickType_t ) 0xffffffffUL
 #endif
 
-
 /* 中断控制状态寄存器：0xe000ed04
  * Bit 28 PENDSVSET: PendSV 悬起位
  */
@@ -35,14 +34,115 @@ typedef unsigned long UBaseType_t;
 
 #define portSY_FULL_READ_WRITE		( 15 )
 
-#define portYIELD()																\
-{																				\
-	/* 触发PendSV，产生上下文切换 */								                \
-	portNVIC_INT_CTRL_REG = portNVIC_PENDSVSET_BIT;								\
-	__dsb( portSY_FULL_READ_WRITE );											\
-	__isb( portSY_FULL_READ_WRITE );											\
+#define portYIELD()																	\
+{																										\
+	/* 触发PendSV，产生上下文切换 */								    \
+	portNVIC_INT_CTRL_REG = portNVIC_PENDSVSET_BIT;		\
+	__dsb( portSY_FULL_READ_WRITE );									\
+	__isb( portSY_FULL_READ_WRITE );									\
 }
 
 BaseType_t xPortStartScheduler( void );
+
+// 临界段相关代码
+extern void vPortEnterCritical( void );
+extern void vPortExitCritical( void );
+
+#define portDISABLE_INTERRUPTS()				vPortRaiseBASEPRI()
+#define portENABLE_INTERRUPTS()					vPortSetBASEPRI( 0 )
+
+#define portENTER_CRITICAL()					vPortEnterCritical()
+#define portEXIT_CRITICAL()						vPortExitCritical()
+
+
+#define portSET_INTERRUPT_MASK_FROM_ISR()		ulPortRaiseBASEPRI()
+#define portCLEAR_INTERRUPT_MASK_FROM_ISR(x)	vPortSetBASEPRI(x)
+
+#define portTASK_FUNCTION( vFunction, pvParameters ) void vFunction( void *pvParameters )
+
+#define portINLINE __inline
+
+#ifndef portFORCE_INLINE
+	#define portFORCE_INLINE __forceinline
+#endif
+
+#ifndef configUSE_PORT_OPTIMISED_TASK_SELECTION
+	#define configUSE_PORT_OPTIMISED_TASK_SELECTION 1
+#endif
+
+#if configUSE_PORT_OPTIMISED_TASK_SELECTION == 1
+
+/* 检测优先级配置 */
+#if( configMAX_PRIORITIES > 32 )
+	#error configUSE_PORT_OPTIMISED_TASK_SELECTION can only be set to 1 when configMAX_PRIORITIES is less than or equal to 32.  It is very rare that a system requires more than 10 to 15 difference priorities as tasks that share a priority will time slice.
+#endif
+
+/* 根据优先级设置/清除优先级位图中相应的位 */
+#define portRECORD_READY_PRIORITY( uxPriority, uxReadyPriorities ) ( uxReadyPriorities ) |= ( 1UL << ( uxPriority ) )
+#define portRESET_READY_PRIORITY( uxPriority, uxReadyPriorities ) ( uxReadyPriorities ) &= ~( 1UL << ( uxPriority ) )
+
+/*-----------------------------------------------------------*/
+
+#define portGET_HIGHEST_PRIORITY( uxTopPriority, uxReadyPriorities ) uxTopPriority = ( 31UL - ( uint32_t ) __clz( ( uxReadyPriorities ) ) )
+
+#endif /* taskRECORD_READY_PRIORITY */
+
+/*-----------------------------------------------------------*/
+
+static portFORCE_INLINE void vPortSetBASEPRI( uint32_t ulBASEPRI )
+{
+	__asm
+	{
+		/* Barrier instructions are not used as this function is only used to
+		lower the BASEPRI value. */
+		msr basepri, ulBASEPRI
+	}
+}
+/*-----------------------------------------------------------*/
+
+static portFORCE_INLINE void vPortRaiseBASEPRI( void )
+{
+uint32_t ulNewBASEPRI = configMAX_SYSCALL_INTERRUPT_PRIORITY;
+
+	__asm
+	{
+		/* Set BASEPRI to the max syscall priority to effect a critical
+		section. */
+		msr basepri, ulNewBASEPRI
+		dsb
+		isb
+	}
+}
+/*-----------------------------------------------------------*/
+
+static portFORCE_INLINE void vPortClearBASEPRIFromISR( void )
+{
+	__asm
+	{
+		/* Set BASEPRI to 0 so no interrupts are masked.  This function is only
+		used to lower the mask in an interrupt, so memory barriers are not 
+		used. */
+		msr basepri, #0
+	}
+}
+/*-----------------------------------------------------------*/
+
+static portFORCE_INLINE uint32_t ulPortRaiseBASEPRI( void )
+{
+uint32_t ulReturn, ulNewBASEPRI = configMAX_SYSCALL_INTERRUPT_PRIORITY;
+
+	__asm
+	{
+		/* Set BASEPRI to the max syscall priority to effect a critical
+		section. */
+		mrs ulReturn, basepri
+		msr basepri, ulNewBASEPRI
+		dsb
+		isb
+	}
+
+	return ulReturn;
+}
+
 
 #endif /* PORTMACRO_H */

@@ -7,6 +7,11 @@
 #define configUSE_16_BIT_TICKS								0
 #define configKERNEL_INTERRUPT_PRIORITY				255
 #define configMAX_SYSCALL_INTERRUPT_PRIORITY	191
+#define configMINIMAL_STACK_SIZE ((unsigned short) 128)
+	
+
+#define configCPU_CLOCK_HZ			( ( unsigned long ) 25000000 )	
+#define configTICK_RATE_HZ			( ( TickType_t ) 100 )
 
 // 把这三个函数定义成几个中断服务函数的名称，分别对应PendSV、SysTick、SVC
 #define xPortPendSVHandler   PendSV_Handler

@@ -10,6 +10,22 @@
 #define portNVIC_PENDSV_PRI					( ( ( uint32_t ) configKERNEL_INTERRUPT_PRIORITY ) << 16UL )
 #define portNVIC_SYSTICK_PRI				( ( ( uint32_t ) configKERNEL_INTERRUPT_PRIORITY ) << 24UL )
 
+/* SysTick 配置寄存器 */
+#define portNVIC_SYSTICK_CTRL_REG			( * ( ( volatile uint32_t * ) 0xe000e010 ) )
+#define portNVIC_SYSTICK_LOAD_REG			( * ( ( volatile uint32_t * ) 0xe000e014 ) )
+
+#ifndef configSYSTICK_CLOCK_HZ
+#define configSYSTICK_CLOCK_HZ configCPU_CLOCK_HZ
+#define portNVIC_SYSTICK_CLK_BIT	( 1UL << 2UL )		/* 确保SysTick的时钟与内核时钟一致 */
+#else
+	#define portNVIC_SYSTICK_CLK_BIT	( 0 )
+#endif
+
+#define portNVIC_SYSTICK_INT_BIT			( 1UL << 1UL )
+#define portNVIC_SYSTICK_ENABLE_BIT			( 1UL << 0UL )
+
+static UBaseType_t uxCriticalNesting = 0xaaaaaaaa;
+
 static void prvTaskExitError( void )
 {
     /* 函数停止在这里 */
@@ -19,6 +35,7 @@ static void prvTaskExitError( void )
 void prvStartFirstTask( void );
 void vPortSVCHandler( void );
 void xPortPendSVHandler( void );
+void vPortSetupTimerInterrupt( void );
 
 BaseType_t xPortStartScheduler( void )
 {
@@ -26,7 +43,10 @@ BaseType_t xPortStartScheduler( void )
 	// PendSV和SysTick都属于系统调度，系统调度优先级需要低于其他中断
 	portNVIC_SYSPRI2_REG |= portNVIC_PENDSV_PRI;
 	portNVIC_SYSPRI2_REG |= portNVIC_SYSTICK_PRI;
-
+	
+	/* 初始化SysTick */
+	vPortSetupTimerInterrupt();
+	
 	/* 启动第一个任务，不再返回 */
 	prvStartFirstTask();
 
@@ -156,3 +176,74 @@ __asm void xPortPendSVHandler( void )
 	nop
 }
 
+/*
+*************************************************************************
+*                             临界段相关函数
+*************************************************************************
+*/
+void vPortEnterCritical( void )
+{
+	portDISABLE_INTERRUPTS();
+	uxCriticalNesting++;
+
+	/* This is not the interrupt safe version of the enter critical function so
+	assert() if it is being called from an interrupt context.  Only API
+	functions that end in "FromISR" can be used in an interrupt.  Only assert if
+	the critical nesting count is 1 to protect against recursive calls if the
+	assert function also uses a critical section. */
+	if( uxCriticalNesting == 1 )
+	{
+//		configASSERT( ( portNVIC_INT_CTRL_REG & portVECTACTIVE_MASK ) == 0 );
+	}
+}
+
+void vPortExitCritical( void )
+{
+	//configASSERT( uxCriticalNesting );
+	uxCriticalNesting--;
+    
+	if( uxCriticalNesting == 0 )
+	{
+		portENABLE_INTERRUPTS();
+	}
+}
+
+/*
+*************************************************************************
+*                             初始化SysTick
+*************************************************************************
+*/
+void vPortSetupTimerInterrupt( void )
+{
+     /* 设置重装载寄存器的值 */
+    portNVIC_SYSTICK_LOAD_REG = ( configSYSTICK_CLOCK_HZ / configTICK_RATE_HZ ) - 1UL;
+    
+    /* 设置系统定时器的时钟等于内核时钟
+       使能SysTick 定时器中断
+       使能SysTick 定时器 */
+    portNVIC_SYSTICK_CTRL_REG = ( portNVIC_SYSTICK_CLK_BIT | 
+                                  portNVIC_SYSTICK_INT_BIT |
+                                  portNVIC_SYSTICK_ENABLE_BIT ); 
+}
+
+/*
+*************************************************************************
+*                             SysTick中断服务函数
+*************************************************************************
+*/
+void xPortSysTickHandler( void )
+{
+	/* 关中断 */
+    vPortRaiseBASEPRI();
+    
+    /* 更新系统时基 */
+		if( xTaskIncrementTick() != pdFALSE )
+		{
+			/* 任务切换，即触发PendSV */
+            //portNVIC_INT_CTRL_REG = portNVIC_PENDSVSET_BIT;
+            taskYIELD();
+		}
+
+		/* 开中断 */
+    vPortClearBASEPRIFromISR();
+}
