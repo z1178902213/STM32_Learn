@@ -28,7 +28,15 @@ extern "C" {
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_hal.h"
-
+#include <stdio.h>
+#include "string.h"
+#include "FreeRTOS.h"
+#include "task.h"
+#include "bsp_led.h"
+#include "bsp_wifi.h"
+#include "bsp_console.h"
+#include "bsp_eth.h"
+#include "user_task.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -51,6 +59,7 @@ extern "C" {
 
 /* Exported functions prototypes ---------------------------------------------*/
 void Error_Handler(void);
+//void TCPIP_Init(void);
 
 /* USER CODE BEGIN EFP */
 
@@ -71,12 +80,8 @@ void Error_Handler(void);
 #define ETH_MDC_USER_GPIO_Port GPIOC
 #define SW1_Pin GPIO_PIN_0
 #define SW1_GPIO_Port GPIOA
-#define ETH_CLK_USER_Pin GPIO_PIN_1
-#define ETH_CLK_USER_GPIO_Port GPIOA
 #define ETH_MDIO_USER_Pin GPIO_PIN_2
 #define ETH_MDIO_USER_GPIO_Port GPIOA
-#define ETH_DV_USER_Pin GPIO_PIN_7
-#define ETH_DV_USER_GPIO_Port GPIOA
 #define ETH_RXD0_USER_Pin GPIO_PIN_4
 #define ETH_RXD0_USER_GPIO_Port GPIOC
 #define ETH_RXD1_Pin GPIO_PIN_5
@@ -97,10 +102,6 @@ void Error_Handler(void);
 #define ETH_TXD1_GPIO_Port GPIOG
 #define WIFI_RST_Pin GPIO_PIN_15
 #define WIFI_RST_GPIO_Port GPIOG
-
-/* USER CODE BEGIN Private defines */
-
-/* USER CODE END Private defines */
 
 #ifdef __cplusplus
 }

@@ -22,15 +22,12 @@
 #include "stm32f4xx_it.h"
 #include "FreeRTOS.h"
 #include "task.h"
-#include "user_task.h"
-
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN TD */
-
 /* USER CODE END TD */
 
 /* Private define ------------------------------------------------------------*/
@@ -59,6 +56,7 @@
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
+extern ETH_HandleTypeDef EthHandle;
 extern DMA_HandleTypeDef hdma_usart1_tx;
 extern DMA_HandleTypeDef hdma_usart1_rx;
 extern DMA_HandleTypeDef hdma_usart3_rx;
@@ -97,7 +95,10 @@ void HardFault_Handler(void)
   /* USER CODE END HardFault_IRQn 0 */
   while (1)
   {
+		printf("Hard Fault.\n");
     /* USER CODE BEGIN W1_HardFault_IRQn 0 */
+		LED_Toggle(LED_R_GPIO_Port, LED_R_Pin);
+		HAL_Delay(200);
     /* USER CODE END W1_HardFault_IRQn 0 */
   }
 }
@@ -192,11 +193,21 @@ void DebugMon_Handler(void)
 void SysTick_Handler(void)
 {
   /* USER CODE BEGIN SysTick_IRQn 0 */
-
+	uint32_t ulReturn;
+	ulReturn = taskENTER_CRITICAL_FROM_ISR();
   /* USER CODE END SysTick_IRQn 0 */
   HAL_IncTick();
   /* USER CODE BEGIN SysTick_IRQn 1 */
-	xPortSysTickHandler();
+#if (INCLUDE_xTaskGetSchedulerState == 1 )
+	if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED)
+	{
+#endif /* INCLUDE_xTaskGetSchedulerState */
+		xPortSysTickHandler();
+#if (INCLUDE_xTaskGetSchedulerState == 1 )
+	}
+#endif /* INCLUDE_xTaskGetSchedulerState */
+	/* ÍË³öÁÙ½ç¶Î */
+	taskEXIT_CRITICAL_FROM_ISR( ulReturn );
   /* USER CODE END SysTick_IRQn 1 */
 }
 
@@ -290,7 +301,3 @@ void DMA2_Stream7_IRQHandler(void)
 
   /* USER CODE END DMA2_Stream7_IRQn 1 */
 }
-
-/* USER CODE BEGIN 1 */
-
-/* USER CODE END 1 */

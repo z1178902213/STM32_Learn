@@ -1,5 +1,6 @@
 #ifndef __BSP_CONSOLE_H
 #define __BSP_CONSOLE_H
+#include <stdio.h>
 #include "stm32f4xx.h"
 #include "main.h"
 #include "stm32f4xx_hal_uart.h"
