@@ -83,6 +83,47 @@ void HAL_MspInit(void)
   /* USER CODE END MspInit 1 */
 }
 
+
+/**
+  * @brief ETH MSP De-Initialization
+  * This function freeze the hardware resources used in this example
+  * @param heth: ETH handle pointer
+  * @retval None
+  */
+void HAL_ETH_MspDeInit(ETH_HandleTypeDef* heth)
+{
+  if(heth->Instance==ETH)
+  {
+    /* USER CODE BEGIN ETH_MspDeInit 0 */
+
+    /* USER CODE END ETH_MspDeInit 0 */
+    /* Peripheral clock disable */
+    __HAL_RCC_ETH_CLK_DISABLE();
+
+    /**ETH GPIO Configuration
+    PC1     ------> ETH_MDC
+    PA1     ------> ETH_REF_CLK
+    PA2     ------> ETH_MDIO
+    PA7     ------> ETH_CRS_DV
+    PC4     ------> ETH_RXD0
+    PC5     ------> ETH_RXD1
+    PG11     ------> ETH_TX_EN
+    PG13     ------> ETH_TXD0
+    PG14     ------> ETH_TXD1
+    */
+    HAL_GPIO_DeInit(GPIOC, ETH_MDC_USER_Pin|ETH_RXD0_USER_Pin|ETH_RXD1_Pin);
+
+    HAL_GPIO_DeInit(GPIOA, GPIO_PIN_1|ETH_MDIO_USER_Pin|GPIO_PIN_7);
+
+    HAL_GPIO_DeInit(GPIOG, ETH_TX_EN_Pin|ETH_TXD0_Pin|ETH_TXD1_Pin);
+
+    /* USER CODE BEGIN ETH_MspDeInit 1 */
+
+    /* USER CODE END ETH_MspDeInit 1 */
+  }
+
+}
+
 /**
   * @brief UART MSP Initialization
   * This function configures the hardware resources used in this example

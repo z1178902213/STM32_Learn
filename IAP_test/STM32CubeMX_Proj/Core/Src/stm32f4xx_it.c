@@ -22,15 +22,13 @@
 #include "stm32f4xx_it.h"
 #include "FreeRTOS.h"
 #include "task.h"
-#include "user_task.h"
-
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN TD */
-
+extern ETH_HandleTypeDef EthHandle;
 /* USER CODE END TD */
 
 /* Private define ------------------------------------------------------------*/
@@ -192,11 +190,21 @@ void DebugMon_Handler(void)
 void SysTick_Handler(void)
 {
   /* USER CODE BEGIN SysTick_IRQn 0 */
-
+	uint32_t ulReturn;
+	ulReturn = taskENTER_CRITICAL_FROM_ISR();
   /* USER CODE END SysTick_IRQn 0 */
   HAL_IncTick();
   /* USER CODE BEGIN SysTick_IRQn 1 */
-	xPortSysTickHandler();
+#if (INCLUDE_xTaskGetSchedulerState == 1 )
+	if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED)
+	{
+#endif /* INCLUDE_xTaskGetSchedulerState */
+		xPortSysTickHandler();
+#if (INCLUDE_xTaskGetSchedulerState == 1 )
+	}
+#endif /* INCLUDE_xTaskGetSchedulerState */
+	/* ÍË³öÁÙ½ç¶Î */
+	taskEXIT_CRITICAL_FROM_ISR( ulReturn );
   /* USER CODE END SysTick_IRQn 1 */
 }
 
@@ -292,5 +300,8 @@ void DMA2_Stream7_IRQHandler(void)
 }
 
 /* USER CODE BEGIN 1 */
-
+void ETH_IRQHandler(void)
+{
+	HAL_ETH_IRQHandler(&EthHandle);
+}
 /* USER CODE END 1 */

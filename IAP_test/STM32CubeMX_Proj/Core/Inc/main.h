@@ -51,6 +51,7 @@ extern "C" {
 
 /* Exported functions prototypes ---------------------------------------------*/
 void Error_Handler(void);
+void TCPIP_Init(void);
 
 /* USER CODE BEGIN EFP */
 
@@ -71,12 +72,8 @@ void Error_Handler(void);
 #define ETH_MDC_USER_GPIO_Port GPIOC
 #define SW1_Pin GPIO_PIN_0
 #define SW1_GPIO_Port GPIOA
-#define ETH_CLK_USER_Pin GPIO_PIN_1
-#define ETH_CLK_USER_GPIO_Port GPIOA
 #define ETH_MDIO_USER_Pin GPIO_PIN_2
 #define ETH_MDIO_USER_GPIO_Port GPIOA
-#define ETH_DV_USER_Pin GPIO_PIN_7
-#define ETH_DV_USER_GPIO_Port GPIOA
 #define ETH_RXD0_USER_Pin GPIO_PIN_4
 #define ETH_RXD0_USER_GPIO_Port GPIOC
 #define ETH_RXD1_Pin GPIO_PIN_5
@@ -99,7 +96,23 @@ void Error_Handler(void);
 #define WIFI_RST_GPIO_Port GPIOG
 
 /* USER CODE BEGIN Private defines */
+/*Static IP ADDRESS*/
+#define IP_ADDR0   ((uint8_t)192U)
+#define IP_ADDR1   ((uint8_t)168U)
+#define IP_ADDR2   ((uint8_t)31U)
+#define IP_ADDR3   ((uint8_t)200U)
 
+/*NETMASK*/
+#define NETMASK_ADDR0   ((uint8_t)255U)
+#define NETMASK_ADDR1   ((uint8_t)255U)
+#define NETMASK_ADDR2   ((uint8_t)255U)
+#define NETMASK_ADDR3   ((uint8_t)0U)
+
+/*Gateway Address*/
+#define GW_ADDR0   ((uint8_t)192U)
+#define GW_ADDR1   ((uint8_t)168U)
+#define GW_ADDR2   ((uint8_t)31U)
+#define GW_ADDR3   ((uint8_t)1U)
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus
