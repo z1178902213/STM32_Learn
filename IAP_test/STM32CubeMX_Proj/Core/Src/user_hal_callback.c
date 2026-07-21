@@ -26,22 +26,22 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart){
 
 // 数据接收完成的回调函数
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size){
-	// 接受完的回调函数，判断是空闲
-	HAL_UART_RxEventTypeTypeDef rxStatue = HAL_UARTEx_GetRxEventType(huart);
-	if(rxStatue == HAL_UART_RXEVENT_IDLE){
-		if(Size > 0){
-			if(huart == &huart1){
-				console_rx_buf_size = Size;
-				console_rx_complete = 1;
-			}else if(huart == &huart3){
-				wifi_rx_buf_size = Size;
-				wifi_rx_complete = 1;
-			}
-		}
-	}else if(rxStatue == HAL_UART_RXEVENT_TC){		// 如果是接收溢出了的处理方案
-		
-	}else if(rxStatue == HAL_UART_RXEVENT_HT){		// 如果是半满了的处理办法
-		
-	}
+//	// 接受完的回调函数，判断是空闲
+//	HAL_UART_RxEventTypeTypeDef rxStatue = HAL_UARTEx_GetRxEventType(huart);
+//	if(rxStatue == HAL_UART_RXEVENT_IDLE){
+//		if(Size > 0){
+//			if(huart == &huart1){
+//				console_rx_buf_size = Size;
+//				console_rx_complete = 1;
+//			}else if(huart == &huart3){
+//				wifi_rx_buf_size = Size;
+//				wifi_rx_complete = 1;
+//			}
+//		}
+//	}else if(rxStatue == HAL_UART_RXEVENT_TC){		// 如果是接收溢出了的处理方案
+//		
+//	}else if(rxStatue == HAL_UART_RXEVENT_HT){		// 如果是半满了的处理办法
+//		
+//	}
 }
 

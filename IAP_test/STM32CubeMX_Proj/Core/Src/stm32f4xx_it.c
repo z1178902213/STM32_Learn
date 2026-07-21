@@ -28,7 +28,6 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN TD */
-extern ETH_HandleTypeDef EthHandle;
 /* USER CODE END TD */
 
 /* Private define ------------------------------------------------------------*/
@@ -57,6 +56,7 @@ extern ETH_HandleTypeDef EthHandle;
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
+extern ETH_HandleTypeDef EthHandle;
 extern DMA_HandleTypeDef hdma_usart1_tx;
 extern DMA_HandleTypeDef hdma_usart1_rx;
 extern DMA_HandleTypeDef hdma_usart3_rx;
@@ -95,7 +95,10 @@ void HardFault_Handler(void)
   /* USER CODE END HardFault_IRQn 0 */
   while (1)
   {
+		printf("Hard Fault.\n");
     /* USER CODE BEGIN W1_HardFault_IRQn 0 */
+		LED_Toggle(LED_R_GPIO_Port, LED_R_Pin);
+		HAL_Delay(200);
     /* USER CODE END W1_HardFault_IRQn 0 */
   }
 }
@@ -298,10 +301,3 @@ void DMA2_Stream7_IRQHandler(void)
 
   /* USER CODE END DMA2_Stream7_IRQn 1 */
 }
-
-/* USER CODE BEGIN 1 */
-void ETH_IRQHandler(void)
-{
-	HAL_ETH_IRQHandler(&EthHandle);
-}
-/* USER CODE END 1 */

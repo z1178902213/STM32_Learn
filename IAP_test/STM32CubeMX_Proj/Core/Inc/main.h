@@ -28,7 +28,15 @@ extern "C" {
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_hal.h"
-
+#include <stdio.h>
+#include "string.h"
+#include "FreeRTOS.h"
+#include "task.h"
+#include "bsp_led.h"
+#include "bsp_wifi.h"
+#include "bsp_console.h"
+#include "bsp_eth.h"
+#include "user_task.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -51,7 +59,7 @@ extern "C" {
 
 /* Exported functions prototypes ---------------------------------------------*/
 void Error_Handler(void);
-void TCPIP_Init(void);
+//void TCPIP_Init(void);
 
 /* USER CODE BEGIN EFP */
 
@@ -94,26 +102,6 @@ void TCPIP_Init(void);
 #define ETH_TXD1_GPIO_Port GPIOG
 #define WIFI_RST_Pin GPIO_PIN_15
 #define WIFI_RST_GPIO_Port GPIOG
-
-/* USER CODE BEGIN Private defines */
-/*Static IP ADDRESS*/
-#define IP_ADDR0   ((uint8_t)192U)
-#define IP_ADDR1   ((uint8_t)168U)
-#define IP_ADDR2   ((uint8_t)31U)
-#define IP_ADDR3   ((uint8_t)200U)
-
-/*NETMASK*/
-#define NETMASK_ADDR0   ((uint8_t)255U)
-#define NETMASK_ADDR1   ((uint8_t)255U)
-#define NETMASK_ADDR2   ((uint8_t)255U)
-#define NETMASK_ADDR3   ((uint8_t)0U)
-
-/*Gateway Address*/
-#define GW_ADDR0   ((uint8_t)192U)
-#define GW_ADDR1   ((uint8_t)168U)
-#define GW_ADDR2   ((uint8_t)31U)
-#define GW_ADDR3   ((uint8_t)1U)
-/* USER CODE END Private defines */
 
 #ifdef __cplusplus
 }

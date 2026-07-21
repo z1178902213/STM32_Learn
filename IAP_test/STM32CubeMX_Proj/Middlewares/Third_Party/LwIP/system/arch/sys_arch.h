@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2001-2003 Swedish Institute of Computer Science.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
+ * Copyright (c) 2017 Simon Goldschmidt
+ * All rights reserved. 
+ * 
+ * Redistribution and use in source and binary forms, with or without modification, 
  * are permitted provided that the following conditions are met:
  *
  * 1. Redistributions of source code must retain the above copyright notice,
@@ -11,62 +11,80 @@
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
  * 3. The name of the author may not be used to endorse or promote products
- *    derived from this software without specific prior written permission.
+ *    derived from this software without specific prior written permission. 
  *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT
- * SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
- * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT
- * OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
- * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED 
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT 
+ * SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
+ * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT 
+ * OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING 
+ * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY 
  * OF SUCH DAMAGE.
  *
  * This file is part of the lwIP TCP/IP stack.
- *
- * Author: Adam Dunkels <adam@sics.se>
+ * 
+ * Author: Simon Goldschmidt
  *
  */
-#ifndef __SYS_ARCH_H__
-#define __SYS_ARCH_H__
+ 
+#include <lwip/opt.h>
+#include <lwip/arch.h>
+#include "lwip/tcpip.h"
 
-#include "lwip/opt.h"
+ /* FreeRTOSÍ·ÎÄ¼þ */
+#include "FreeRTOS.h"
+#include "task.h"
+#include "queue.h"
+#include "semphr.h"
 
-#if (NO_SYS != 0)
-#error "NO_SYS need to be set to 0 to use threaded API"
-#endif
+/* USER CODE BEGIN 0 */
+#define DEST_IP_ADDR0               192
+#define DEST_IP_ADDR1               168
+#define DEST_IP_ADDR2                31
+#define DEST_IP_ADDR3               211
 
-#include "cmsis_os.h"
+#define DEST_PORT                  5001
 
-#ifdef  __cplusplus
-extern "C" {
-#endif
+#define UDP_SERVER_PORT            5002   /* define the UDP local connection port */
+#define UDP_CLIENT_PORT            5002   /* define the UDP remote connection port */
 
-#if (osCMSIS < 0x20000U)
+#define LOCAL_PORT                 5001
 
-#define SYS_MBOX_NULL (osMessageQId)0
-#define SYS_SEM_NULL  (osSemaphoreId)0
+/*Static IP ADDRESS: IP_ADDR0.IP_ADDR1.IP_ADDR2.IP_ADDR3 */
+#define IP_ADDR0                    192
+#define IP_ADDR1                    168
+#define IP_ADDR2                     31
+#define IP_ADDR3                    200
 
-typedef osSemaphoreId sys_sem_t;
-typedef osSemaphoreId sys_mutex_t;
-typedef osMessageQId  sys_mbox_t;
-typedef osThreadId    sys_thread_t;
-#else
+/*NETMASK*/
+#define NETMASK_ADDR0               255
+#define NETMASK_ADDR1               255
+#define NETMASK_ADDR2               255
+#define NETMASK_ADDR3                 0
 
-#define SYS_MBOX_NULL (osMessageQueueId_t)0
-#define SYS_SEM_NULL  (osSemaphoreId_t)0
+/*Gateway Address*/
+#define GW_ADDR0                    192
+#define GW_ADDR1                    168
+#define GW_ADDR2                     31
+#define GW_ADDR3                      1
+/* USER CODE END 0 */
 
-typedef osSemaphoreId_t     sys_sem_t;
-typedef osSemaphoreId_t     sys_mutex_t;
-typedef osMessageQueueId_t  sys_mbox_t;
-typedef osThreadId_t        sys_thread_t;
-#endif
+#define SYS_MBOX_NULL  (QueueHandle_t)0
+#define SYS_SEM_NULL   (SemaphoreHandle_t)0
+#define SYS_MRTEX_NULL SYS_SEM_NULL
+#define SYS_DEFAULT_THREAD_STACK_DEPTH	configMINIMAL_STACK_SIZE
 
-#ifdef  __cplusplus
-}
-#endif
+typedef SemaphoreHandle_t sys_sem_t;
+typedef SemaphoreHandle_t sys_mutex_t;
+typedef QueueHandle_t sys_mbox_t;
+typedef TaskHandle_t sys_thread_t;
 
-#endif /* __SYS_ARCH_H__ */
+typedef int sys_prot_t;
+
+
+
+void TCPIP_Init(void);
 
