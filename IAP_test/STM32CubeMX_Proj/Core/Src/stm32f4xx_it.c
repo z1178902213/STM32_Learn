@@ -22,6 +22,7 @@
 #include "stm32f4xx_it.h"
 #include "FreeRTOS.h"
 #include "task.h"
+#include "stm32f4xx_hal_uart.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 /* USER CODE END Includes */
@@ -63,6 +64,13 @@ extern DMA_HandleTypeDef hdma_usart3_rx;
 extern DMA_HandleTypeDef hdma_usart3_tx;
 extern UART_HandleTypeDef huart1;
 extern UART_HandleTypeDef huart3;
+
+extern uint32_t console_rx_buf_size;
+extern uint8_t console_rx_complete;
+
+extern uint32_t wifi_rx_buf_size;
+extern uint8_t wifi_rx_complete;
+	
 /* USER CODE BEGIN EV */
 extern void xPortSysTickHandler( void );
 /* USER CODE END EV */
@@ -252,7 +260,25 @@ void DMA1_Stream3_IRQHandler(void)
 void USART1_IRQHandler(void)
 {
   /* USER CODE BEGIN USART1_IRQn 0 */
+	uint32_t tmp_console_rx_len = 0;
+	uint32_t sr = USART1->SR;
+	
+  if( (sr & USART_SR_IDLE) && (USART1->CR1 & USART_CR1_IDLEIE) )
+  {
+			__HAL_UART_CLEAR_IDLEFLAG(&huart1); // 清除IDLE标志
 
+			// 停止DMA
+		HAL_UART_DMAStop(&huart1);
+
+			// 计算收到的数据长度
+			tmp_console_rx_len = CONSOLE_MAX_BUFFER_SIZE - __HAL_DMA_GET_COUNTER(huart1.hdmarx);
+
+			if(tmp_console_rx_len > 0)
+			{
+					console_rx_buf_size = tmp_console_rx_len;
+					console_rx_complete = 1;
+			}
+  }
   /* USER CODE END USART1_IRQn 0 */
   HAL_UART_IRQHandler(&huart1);
   /* USER CODE BEGIN USART1_IRQn 1 */
@@ -266,7 +292,25 @@ void USART1_IRQHandler(void)
 void USART3_IRQHandler(void)
 {
   /* USER CODE BEGIN USART3_IRQn 0 */
+	uint32_t tmp_wifi_rx_len = 0;
+	uint32_t sr = USART3->SR;
+	
+  if( (sr & USART_SR_IDLE) && (USART3->CR1 & USART_CR1_IDLEIE) )
+  {
+			__HAL_UART_CLEAR_IDLEFLAG(&huart3); // 清除IDLE标志
 
+			// 停止DMA
+		HAL_UART_DMAStop(&huart3);
+
+			// 计算收到的数据长度
+			tmp_wifi_rx_len = CONSOLE_MAX_BUFFER_SIZE - __HAL_DMA_GET_COUNTER(huart3.hdmarx);
+
+			if(tmp_wifi_rx_len > 0)
+			{
+					wifi_rx_buf_size = tmp_wifi_rx_len;
+					wifi_rx_complete = 1;
+			}
+  }
   /* USER CODE END USART3_IRQn 0 */
   HAL_UART_IRQHandler(&huart3);
   /* USER CODE BEGIN USART3_IRQn 1 */

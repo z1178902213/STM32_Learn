@@ -4,6 +4,7 @@
 #include "stm32f4xx.h"
 #include "stm32f4xx_hal_gpio.h"
 #include "main.h"
+#include "user_hal_callback.h"
 
 #define WIFI_MAX_BUFFER_SIZE 0xff
 

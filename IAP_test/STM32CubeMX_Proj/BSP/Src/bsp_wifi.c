@@ -21,9 +21,11 @@ WIFI_Status_Type WIFI_Send_Command(uint8_t *pdata, uint16_t size){
 	return (WIFI_Status_Type)wStatus;
 }
 
-//// WiFi指令接收，接收WiFi模块发回的数据
-//WIFI_Status_Type WIFI_Receive_Message(){
-//	HAL_StatusTypeDef wStatus;
-//	wStatus = HAL_UARTEx_ReceiveToIdle_DMA(&huart3, (uint8_t*)wifi_rx_buffer, WIFI_MAX_BUFFER_SIZE);
-//	return (WIFI_Status_Type)wStatus;
-//}
+// WiFi指令接收，接收WiFi模块发回的数据
+WIFI_Status_Type WIFI_Receive_Message(){
+	HAL_StatusTypeDef wStatus;
+	wStatus = User_UARTEx_ReceiveToIdle_DMA(&huart3, (uint8_t*)wifi_rx_buffer, WIFI_MAX_BUFFER_SIZE);
+	return (WIFI_Status_Type)wStatus;
+}
+
+

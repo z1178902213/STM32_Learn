@@ -106,6 +106,8 @@ int main(void)
   MX_DMA_Init();
   MX_USART1_UART_Init();
   MX_USART3_UART_Init();
+	WIFI_Enable();
+	printf("==> BSP初始化成功\n");
   /* USER CODE BEGIN 2 */
 	User_Start_Tasks();
   /* USER CODE END 2 */

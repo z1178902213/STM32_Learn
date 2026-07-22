@@ -29,15 +29,17 @@ Console_Status_Type Console_Send_Data(uint8_t *pdata, uint16_t size){
 }
 
 // 控制台输入，等待上位机发送消息
-//Console_Status_Type Console_Readlines(){
-//	HAL_StatusTypeDef rxStatus = HAL_UARTEx_ReceiveToIdle_DMA(&huart1, (uint8_t*)console_rx_buffer, CONSOLE_MAX_BUFFER_SIZE);
-//	return (Console_Status_Type)rxStatus;
-//}
+Console_Status_Type Console_Readlines(){
+	HAL_StatusTypeDef rxStatus = User_UARTEx_ReceiveToIdle_DMA(&huart1, (uint8_t*)console_rx_buffer, CONSOLE_MAX_BUFFER_SIZE);
+	return (Console_Status_Type)rxStatus;
+}
 
-// 解析指令格式
+// 解析指令类型
 Console_Command_Type Console_Parse_Command(){
 	if(console_rx_buffer[0] == 'A' && console_rx_buffer[1] == 'T'){
 		return Console_Command_WiFi;
+	}else if(console_rx_buffer[0] == 'E' && console_rx_buffer[1] == 'X' && console_rx_buffer[2] == 'I' && console_rx_buffer[3] == 'T'){
+		return Console_Command_Exit;
 	}else{
 		return Console_Command_Unknown;
 	}
@@ -48,7 +50,7 @@ Console_Command_Type Console_Parse_Command(){
 int fputc(int ch, FILE *f)
 {
 	/* 发送一个字节数据到串口DEBUG_USART */
-	HAL_UART_Transmit(&huart1, (uint8_t *)&ch, 1, 20);	
+	HAL_UART_Transmit(&huart1, (uint8_t *)&ch, 1, 1000);	
 	
 	return (ch);
 }
@@ -58,7 +60,7 @@ int fgetc(FILE *f)
 {
 		
 	int ch;
-	HAL_UART_Receive(&huart1, (uint8_t *)&ch, 1, 20);	
+	HAL_UART_Receive(&huart1, (uint8_t *)&ch, 1, 10);	
 	return (ch);
 }
 
